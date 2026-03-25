@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="学習トラッカー">
+<title>学習トラッカー</title>
+<style>
+:root{
+  --bg:#f9f7f4;--surface:#ffffff;--border:#e8e4de;--border2:#d4cfc8;
+  --text:#1e1c1a;--text2:#6b6560;--text3:#a09890;
+  --accent:#c0664a;--accent-light:#f5ede9;--accent-mid:#e8957a;
+  --radius:10px;--radius-sm:7px;--radius-lg:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+.app{max-width:480px;margin:0 auto;padding:0 0 90px;min-height:100vh}
+.header{padding:env(safe-area-inset-top, 20px) 16px 0;padding-top:calc(env(safe-area-inset-top, 0px) + 20px);margin-bottom:20px}
+.header h1{font-size:17px;font-weight:600;letter-spacing:.01em;color:var(--text)}
+.header p{font-size:12px;color:var(--text3);margin-top:3px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(249,247,244,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:0.5px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-btn{flex:1;padding:12px 0 14px;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;cursor:pointer;color:var(--text3);font-size:12px;font-family:inherit}
+.nav-btn.active{color:var(--accent);font-weight:600}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:16px}
+.mc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 12px 10px}
+.mc-label{font-size:10px;color:var(--text3);margin-bottom:5px;letter-spacing:.02em}
+.mc-value{font-size:19px;font-weight:600;color:var(--text);line-height:1}
+.mc-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.streak-card{background:var(--accent-light);border:0.5px solid var(--accent-mid);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;display:flex;align-items:center;gap:12px}
+.streak-num{font-size:36px;font-weight:700;color:var(--accent);line-height:1}
+.streak-label{font-size:13px;font-weight:600;color:var(--accent)}
+.streak-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.goal-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px}
+.goal-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.goal-label{font-size:13px;color:var(--text);font-weight:500;flex:1}
+.goal-input{padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);-webkit-appearance:none}
+.goal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gs-item{text-align:center}
+.gs-val{font-size:16px;font-weight:600;color:var(--text)}
+.gs-label{font-size:10px;color:var(--text3);margin-top:2px}
+.sec-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text3);padding:0 16px;margin-bottom:8px}
+.fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;margin-bottom:16px}
+.fc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 14px 12px;display:flex;flex-direction:column}
+.fc-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fc-sub{font-size:11px;color:var(--text3);margin-bottom:10px}
+.fc-bar-bg{height:4px;background:var(--accent-light);border-radius:99px;overflow:hidden;margin-bottom:12px}
+.fc-bar-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .3s}
+.counter-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cnt-btn{width:36px;height:36px;border-radius:8px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cnt-btn:active{background:var(--accent-light);transform:scale(.93)}
+.cnt-num{font-size:20px;font-weight:700;color:var(--text);flex:1;text-align:center;line-height:1}
+.fc-goal{font-size:10px;color:var(--text3);text-align:center;margin-top:4px}
+.settings-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.sc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.sc-head{display:flex;align-items:center;margin-bottom:10px;gap:8px}
+.sc-name{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.sc-del{font-size:12px;color:var(--accent);border:0.5px solid #f0c4b8;border-radius:6px;padding:3px 8px;background:transparent;cursor:pointer;font-family:inherit}
+.sc-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.sc-field{display:flex;flex-direction:column;gap:4px}
+.sc-fl{font-size:10px;color:var(--text3)}
+.sc-input{padding:6px 8px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);width:100%;font-family:inherit}
+.sc-textarea{width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:12px;resize:none;min-height:52px;background:var(--bg);color:var(--text);font-family:inherit}
+.add-field-card{background:var(--accent-light);border:0.5px dashed var(--accent-mid);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;display:flex;gap:8px;align-items:center}
+.add-field-card input{flex:1;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit}
+.btn-add{padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-add:active{opacity:.8}
+.hm-wrap{padding:0 16px;margin-bottom:16px}
+.hm-field-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
+.hm-field-scroll::-webkit-scrollbar{display:none}
+.hm-fb{padding:5px 14px;border-radius:99px;border:0.5px solid var(--border2);background:var(--surface);font-size:12px;cursor:pointer;color:var(--text2);white-space:nowrap;font-family:inherit}
+.hm-fb.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hm-month-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px}
+.hm-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+.hm-dows{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.hm-dow{font-size:9px;color:var(--text3);text-align:center}
+.hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.hm-cell{aspect-ratio:1;border-radius:4px}
+.hm-cell.today-cell{outline:2px solid var(--accent);outline-offset:1px}
+.hm-legend{display:flex;align-items:center;gap:4px;margin-top:10px;font-size:10px;color:var(--text3)}
+.hm-lc{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.data-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 10px;display:flex;gap:8px;flex-wrap:wrap}
+.btn-io{flex:1;padding:9px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;text-align:center;min-width:100px;font-family:inherit}
+.btn-io:active{background:var(--accent-light)}
+.hint-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;font-size:12px;color:var(--text2);line-height:1.7}
+.hint-card b{color:var(--text);font-weight:600}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>学習トラッカー</h1>
+    <p id="header-date"></p>
+  </div>
+  <div id="tab-counter"></div>
+  <div id="tab-heatmap" style="display:none"></div>
+  <div id="tab-settings" style="display:none"></div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('counter')" id="nav-counter">カウンター</button>
+    <button class="nav-btn" onclick="showTab('heatmap')" id="nav-heatmap">ヒートマップ</button>
+    <button class="nav-btn" onclick="showTab('settings')" id="nav-settings">設定</button>
+  </nav>
+</div>
+
+<script>
+const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+const DOWS=['日','月','火','水','木','金','土'];
+const HM_COLORS=['#f9f7f4','#f5ddd5','#e8957a','#d4684a','#c0664a','#8a3d2e'];
+
+function loadData(){
+  try{const d=JSON.parse(localStorage.getItem('shikaku_v4')||'null');if(d)return d;}catch(e){}
+  return{goalDate:'',fields:[
+    {name:'法規・法令',total:200,dailyGoal:10,mastery:70,memo:'',counts:{}},
+    {name:'財務・会計',total:150,dailyGoal:8,mastery:45,memo:'',counts:{}},
+    {name:'マーケティング',total:180,dailyGoal:10,mastery:30,memo:'',counts:{}},
+  ]};
+}
+let data=loadData();
+let hmFieldIdx=0;
+
+function save(){try{localStorage.setItem('shikaku_v4',JSON.stringify(data));}catch(e){}}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function totalSolved(f){return Object.values(f.counts||{}).reduce((a,v)=>a+v,0);}
+function todayCount(f){return(f.counts||{})[todayStr()]||0;}
+
+function calcStreak(){
+  const allDates=new Set();
+  data.fields.forEach(f=>{Object.entries(f.counts||{}).forEach(([k,v])=>{if(v>0)allDates.add(k);});});
+  let streak=0;
+  const d=new Date();
+  if(!allDates.has(todayStr()))d.setDate(d.getDate()-1);
+  while(true){
+    const key=d.toISOString().slice(0,10);
+    if(!allDates.has(key))break;
+    streak++;d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+const now=new Date();
+document.getElementById('header-date').textContent=
+  now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+DOWS[now.getDay()]+'）';
+
+function showTab(name){
+  ['counter','heatmap','settings'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'':'none';
+    document.getElementById('nav-'+t).classList.toggle('active',t===name);
+  });
+  if(name==='counter')renderCounter();
+  if(name==='heatmap')renderHeatmap();
+  if(name==='settings')renderSettings();
+}
+
+function renderCounter(){
+  const totalQ=data.fields.reduce((a,f)=>a+f.total,0);
+  const solvedQ=data.fields.reduce((a,f)=>a+totalSolved(f),0);
+  const todayQ=data.fields.reduce((a,f)=>a+todayCount(f),0);
+  const avgM=data.fields.length?Math.round(data.fields.reduce((a,f)=>a+f.mastery,0)/data.fields.length):0;
+  const streak=calcStreak();
+
+  let html=`<div class="metrics">
+    <div class="mc"><div class="mc-label">平均習熟度</div><div class="mc-value">${avgM}%</div></div>
+    <div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">${solvedQ}</div><div class="mc-sub">全${totalQ}問</div></div>
+    <div class="mc"><div class="mc-label">今日</div><div class="mc-value">${todayQ}問</div></div>
+  </div>`;
+
+  const streakMsg=streak===0?'まだ記録がありません':streak>=7?`${streak}日連続！すごい`:streak>=3?`${streak}日連続継続中`:`${streak}日連続継続中`;
+  const streakSub=streak===0?'今日から始めましょう':streak>=7?'この調子で続けましょう':'毎日続けると習慣になります';
+  html+=`<div class="streak-card">
+    <div class="streak-num">${streak}</div>
+    <div><div class="streak-label">${streakMsg}</div><div class="streak-sub">${streakSub}</div></div>
+  </div>`;
+
+  let goalContent='<div style="font-size:12px;color:var(--text3)">目標日を設定すると逆算できます</div>';
+  if(data.goalDate){
+    const n=new Date();n.setHours(0,0,0,0);
+    const g=new Date(data.goalDate);g.setHours(0,0,0,0);
+    const days=Math.max(0,Math.round((g-n)/864e5));
+    const rem=Math.max(0,totalQ-solvedQ);
+    const per=days>0?Math.ceil(rem/days):'—';
+    goalContent=`<div class="goal-stats">
+      <div class="gs-item"><div class="gs-val">${days}日</div><div class="gs-label">残り日数</div></div>
+      <div class="gs-item"><div class="gs-val">${rem}問</div><div class="gs-label">残り問題</div></div>
+      <div class="gs-item"><div class="gs-val">${per}問</div><div class="gs-label">1日の必要数</div></div>
+    </div>`;
+  }
+  html+=`<div class="goal-card">
+    <div class="goal-row">
+      <span class="goal-label">一周目標日</span>
+      <input class="goal-input" type="date" id="goal-date" value="${data.goalDate||''}" onchange="data.goalDate=this.value;save();renderCounter()">
+    </div>${goalContent}
+  </div>`;
+
+  html+='<div class="sec-label">分野別カウンター</div><div class="fields-grid">';
+  data.fields.forEach((f,i)=>{
+    const c=todayCount(f);
+    const pct=f.dailyGoal>0?Math.min(100,Math.round(c/f.dailyGoal*100)):0;
+    html+=`<div class="fc">
+      <div class="fc-name">${f.name}</div>
+      <div class="fc-sub">累計 ${totalSolved(f)}/${f.total}問</div>
+      <div class="fc-bar-bg"><div class="fc-bar-fill" style="width:${pct}%"></div></div>
+      <div class="counter-row">
+        <button class="cnt-btn" onclick="increment(${i},-1)">−</button>
+        <span class="cnt-num">${c}</span>
+        <button class="cnt-btn" onclick="increment(${i},1)">＋</button>
+      </div>
+      <div class="fc-goal">目標 ${f.dailyGoal}問</div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('tab-counter').innerHTML=html;
+}
+
+function increment(i,delta){
+  const t=todayStr();
+  if(!data.fields[i].counts)data.fields[i].counts={};
+  data.fields[i].counts[t]=Math.max(0,(data.fields[i].counts[t]||0)+delta);
+  save();renderCounter();
+}
+
+function hmColor(ratio){
+  if(ratio<=0)return HM_COLORS[0];
+  const idx=Math.min(HM_COLORS.length-1,Math.ceil(ratio*(HM_COLORS.length-1)));
+  return HM_COLORS[idx];
+}
+
+function renderHeatmap(){
+  if(!data.fields.length){
+    document.getElementById('tab-heatmap').innerHTML='<div style="padding:32px 16px;text-align:center;font-size:13px;color:var(--text3)">設定タブで分野を追加してください</div>';
+    return;
+  }
+  if(hmFieldIdx>=data.fields.length)hmFieldIdx=0;
+  const now2=new Date();
+  const yr=now2.getFullYear(),mo=now2.getMonth();
+  const todayKey=todayStr();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const firstDow=new Date(yr,mo,1).getDay();
+  const f=data.fields[hmFieldIdx];
+  const counts=f.counts||{};
+
+  let html='<div class="hm-wrap"><div class="hm-field-scroll">';
+  data.fields.forEach((fd,i)=>{
+    html+=`<button class="hm-fb${i===hmFieldIdx?' active':''}" onclick="hmFieldIdx=${i};renderHeatmap()">${fd.name}</button>`;
+  });
+  html+='</div>';
+  html+=`<div class="hm-month-title">${yr}年 ${MONTHS[mo]}</div><div class="hm-card">`;
+  html+='<div class="hm-dows">'+DOWS.map(d=>`<div class="hm-dow">${d}</div>`).join('')+'</div>';
+  html+='<div class="hm-grid">';
+  for(let e=0;e<firstDow;e++)html+=`<div></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cnt=counts[key]||0;
+    const ratio=f.dailyGoal>0?Math.min(1,cnt/f.dailyGoal):0;
+    const isFuture=new Date(key+' 00:00:00')>now2;
+    const isToday=key===todayKey;
+    html+=`<div class="hm-cell${isToday?' today-cell':''}" style="background:${hmColor(ratio)};opacity:${isFuture?'0.3':'1'}"></div>`;
+  }
+  html+='</div>';
+  html+='<div class="hm-legend"><span>0問</span>';
+  HM_COLORS.forEach(c=>{html+=`<div class="hm-lc" style="background:${c}"></div>`;});
+  html+='<span>目標達成</span></div></div>';
+
+  let monthTotal=0;
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    monthTotal+=(counts[key]||0);
+  }
+  const monthTarget=f.dailyGoal*daysInMonth;
+  const monthPct=monthTarget>0?Math.round(monthTotal/monthTarget*100):0;
+  html+=`<div style="margin-top:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+    <div><div style="font-size:19px;font-weight:600;color:var(--text)">${monthTotal}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の解答数</div></div>
+    <div><div style="font-size:19px;font-weight:600;color:var(--text)">${monthTarget}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の目標数</div></div>
+    <div><div style="font-size:19px;font-weight:600;color:var(--accent)">${monthPct}%</div><div style="font-size:10px;color:var(--text3);margin-top:2px">達成率</div></div>
+  </div></div>`;
+  document.getElementById('tab-heatmap').innerHTML=html;
+}
+
+function renderSettings(){
+  let html='<div class="sec-label" style="margin-top:4px">分野の設定</div><div class="settings-list">';
+  data.fields.forEach((f,i)=>{
+    html+=`<div class="sc">
+      <div class="sc-head"><span class="sc-name">${f.name}</span><button class="sc-del" onclick="removeField(${i})">削除</button></div>
+      <div class="sc-fields">
+        <div class="sc-field"><span class="sc-fl">全体問題数</span><input class="sc-input" type="number" min="0" value="${f.total}" onchange="updF(${i},'total',this.value)"></div>
+        <div class="sc-field"><span class="sc-fl">1日目標</span><input class="sc-input" type="number" min="0" value="${f.dailyGoal}" onchange="updF(${i},'dailyGoal',this.value)"></div>
+        <div class="sc-field"><span class="sc-fl">習熟度%</span><input class="sc-input" type="number" min="0" max="100" value="${f.mastery}" onchange="updF(${i},'mastery',this.value)"></div>
+      </div>
+      <textarea class="sc-textarea" placeholder="メモ..." onchange="updF(${i},'memo',this.value)">${f.memo||''}</textarea>
+    </div>`;
+  });
+  html+=`</div><div class="add-field-card">
+    <input type="text" id="new-name" placeholder="新しい分野名...">
+    <button class="btn-add" onclick="addField()">追加</button>
+  </div>`;
+  html+=`<div class="sec-label">データ管理</div>
+  <div class="data-card">
+    <button class="btn-io" onclick="exportData()">書き出す（JSON）</button>
+    <label class="btn-io" style="cursor:pointer">読み込む（JSON）<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+  </div>`;
+  html+=`<div class="hint-card">
+    <b>iPhoneでホーム画面に追加する方法</b><br>
+    Safari でこのページを開く → 下部の共有ボタン（□↑）→「ホーム画面に追加」→「追加」<br><br>
+    データはこのiPhone内に自動保存されます。機種変更時は「書き出す」でバックアップを取ってください。
+  </div>`;
+  document.getElementById('tab-settings').innerHTML=html;
+}
+
+function updF(i,key,val){
+  if(['mastery','total','dailyGoal'].includes(key))val=parseInt(val)||0;
+  data.fields[i][key]=val;save();
+}
+function removeField(i){
+  if(!confirm('「'+data.fields[i].name+'」を削除しますか？'))return;
+  data.fields.splice(i,1);
+  if(hmFieldIdx>=data.fields.length)hmFieldIdx=Math.max(0,data.fields.length-1);
+  save();renderSettings();
+}
+function addField(){
+  const inp=document.getElementById('new-name');
+  const name=inp.value.trim();if(!name)return;
+  data.fields.push({name,total:100,dailyGoal:10,mastery:0,memo:'',counts:{}});
+  inp.value='';save();renderSettings();
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='shikaku_data.json';a.click();
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{data=JSON.parse(ev.target.result);save();renderSettings();alert('読み込みました！');}
+    catch(err){alert('ファイルが読み込めませんでした');}
+  };
+  reader.readAsText(file);
+}
+
+renderCounter();
+</script>
+</body>
+</html>
