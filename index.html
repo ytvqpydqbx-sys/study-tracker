@@ -54,7 +54,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .cnt-num{font-size:20px;font-weight:700;color:var(--text);flex:1;text-align:center;line-height:1}
 .fc-goal{font-size:10px;color:var(--text3);text-align:center;margin-top:4px}
 .fc-lap{font-size:10px;color:var(--accent);text-align:center;margin-top:2px;font-weight:600}
-/* settings */
 .settings-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .sc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
 .sc-head{display:flex;align-items:center;margin-bottom:10px;gap:8px}
@@ -70,7 +69,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .add-field-card input{flex:1;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit}
 .btn-add{padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap}
 .btn-add:active{opacity:.8}
-/* heatmap */
 .hm-wrap{padding:0 16px;margin-bottom:16px}
 .hm-field-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
 .hm-field-scroll::-webkit-scrollbar{display:none}
@@ -107,12 +105,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     <button class="nav-btn" onclick="showTab('settings')" id="nav-settings">設定</button>
   </nav>
 </div>
-
 <script>
 const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 const DOWS=['日','月','火','水','木','金','土'];
 const HM_COLORS=['#f9f7f4','#f5ddd5','#e8957a','#d4684a','#c0664a','#8a3d2e'];
-
 function loadData(){
   try{const d=JSON.parse(localStorage.getItem('shikaku_v4')||'null');if(d)return d;}catch(e){}
   return{goalDate:'',fields:[
@@ -122,29 +118,18 @@ function loadData(){
   ]};
 }
 let data=loadData();
-
-// 旧データのmasteryをprevSolvedに変換（移行）
 data.fields.forEach(f=>{
   if(f.prevSolved===undefined)f.prevSolved=0;
   if(f.mastery!==undefined)delete f.mastery;
 });
-
 let hmFieldIdx=0;
-
 function save(){try{localStorage.setItem('shikaku_v4',JSON.stringify(data));}catch(e){}}
 function todayStr(){return new Date().toISOString().slice(0,10);}
-
-// 累計解答数（カウンター合計）
 function totalCounted(f){return Object.values(f.counts||{}).reduce((a,v)=>a+v,0);}
-// 全解答数（既存＋カウンター）
 function totalSolved(f){return (f.prevSolved||0)+totalCounted(f);}
-// 習熟度（自動計算）
 function mastery(f){return f.total>0?Math.min(100,Math.round(totalSolved(f)/f.total*100)):0;}
-// 何周目（自動計算）
 function lapCount(f){return f.total>0?Math.floor(totalSolved(f)/f.total)+1:1;}
-// 今日のカウント
 function todayCount(f){return(f.counts||{})[todayStr()]||0;}
-
 function calcStreak(){
   const allDates=new Set();
   data.fields.forEach(f=>{Object.entries(f.counts||{}).forEach(([k,v])=>{if(v>0)allDates.add(k);});});
@@ -158,11 +143,9 @@ function calcStreak(){
   }
   return streak;
 }
-
 const now=new Date();
 document.getElementById('header-date').textContent=
   now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+DOWS[now.getDay()]+'）';
-
 function showTab(name){
   ['counter','heatmap','settings'].forEach(t=>{
     document.getElementById('tab-'+t).style.display=t===name?'':'none';
@@ -172,27 +155,23 @@ function showTab(name){
   if(name==='heatmap')renderHeatmap();
   if(name==='settings')renderSettings();
 }
-
 function renderCounter(){
   const totalQ=data.fields.reduce((a,f)=>a+f.total,0);
   const solvedQ=data.fields.reduce((a,f)=>a+totalSolved(f),0);
   const todayQ=data.fields.reduce((a,f)=>a+todayCount(f),0);
   const avgM=data.fields.length?Math.round(data.fields.reduce((a,f)=>a+mastery(f),0)/data.fields.length):0;
   const streak=calcStreak();
-
   let html=`<div class="metrics">
     <div class="mc"><div class="mc-label">平均習熟度</div><div class="mc-value">${avgM}%</div></div>
     <div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">${solvedQ}</div><div class="mc-sub">全${totalQ}問</div></div>
     <div class="mc"><div class="mc-label">今日</div><div class="mc-value">${todayQ}問</div></div>
   </div>`;
-
   const streakMsg=streak===0?'まだ記録がありません':streak>=7?`${streak}日連続！すごい`:`${streak}日連続継続中`;
   const streakSub=streak===0?'今日から始めましょう':streak>=7?'この調子で続けましょう':'毎日続けると習慣になります';
   html+=`<div class="streak-card">
     <div class="streak-num">${streak}</div>
     <div><div class="streak-label">${streakMsg}</div><div class="streak-sub">${streakSub}</div></div>
   </div>`;
-
   let goalContent='<div style="font-size:12px;color:var(--text3)">目標日を設定すると逆算できます</div>';
   if(data.goalDate){
     const n=new Date();n.setHours(0,0,0,0);
@@ -212,7 +191,6 @@ function renderCounter(){
       <input class="goal-input" type="date" id="goal-date" value="${data.goalDate||''}" onchange="data.goalDate=this.value;save();renderCounter()">
     </div>${goalContent}
   </div>`;
-
   html+='<div class="sec-label">分野別カウンター</div><div class="fields-grid">';
   data.fields.forEach((f,i)=>{
     const c=todayCount(f);
@@ -235,20 +213,17 @@ function renderCounter(){
   html+='</div>';
   document.getElementById('tab-counter').innerHTML=html;
 }
-
 function increment(i,delta){
   const t=todayStr();
   if(!data.fields[i].counts)data.fields[i].counts={};
   data.fields[i].counts[t]=Math.max(0,(data.fields[i].counts[t]||0)+delta);
   save();renderCounter();
 }
-
 function hmColor(ratio){
   if(ratio<=0)return HM_COLORS[0];
   const idx=Math.min(HM_COLORS.length-1,Math.ceil(ratio*(HM_COLORS.length-1)));
   return HM_COLORS[idx];
 }
-
 function renderHeatmap(){
   if(!data.fields.length){
     document.getElementById('tab-heatmap').innerHTML='<div style="padding:32px 16px;text-align:center;font-size:13px;color:var(--text3)">設定タブで分野を追加してください</div>';
@@ -262,7 +237,6 @@ function renderHeatmap(){
   const firstDow=new Date(yr,mo,1).getDay();
   const f=data.fields[hmFieldIdx];
   const counts=f.counts||{};
-
   let html='<div class="hm-wrap"><div class="hm-field-scroll">';
   data.fields.forEach((fd,i)=>{
     html+=`<button class="hm-fb${i===hmFieldIdx?' active':''}" onclick="hmFieldIdx=${i};renderHeatmap()">${fd.name}</button>`;
@@ -284,7 +258,6 @@ function renderHeatmap(){
   html+='<div class="hm-legend"><span>0問</span>';
   HM_COLORS.forEach(c=>{html+=`<div class="hm-lc" style="background:${c}"></div>`;});
   html+='<span>目標達成</span></div></div>';
-
   let monthTotal=0;
   for(let d=1;d<=daysInMonth;d++){
     const key=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -299,7 +272,6 @@ function renderHeatmap(){
   </div></div>`;
   document.getElementById('tab-heatmap').innerHTML=html;
 }
-
 function renderSettings(){
   let html='<div class="sec-label" style="margin-top:4px">分野の設定</div><div class="settings-list">';
   data.fields.forEach((f,i)=>{
@@ -338,7 +310,6 @@ function renderSettings(){
   </div>`;
   document.getElementById('tab-settings').innerHTML=html;
 }
-
 function updF(i,key,val){
   if(['total','dailyGoal','prevSolved'].includes(key))val=parseInt(val)||0;
   data.fields[i][key]=val;
@@ -371,7 +342,6 @@ function importData(e){
   };
   reader.readAsText(file);
 }
-
 renderCounter();
 </script>
 </body>
