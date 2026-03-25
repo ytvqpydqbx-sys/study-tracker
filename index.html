@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="学習トラッカー">
-<title>学習トラッカー</title>
+<meta name="apple-mobile-web-app-title" content="Study Tracker">
+<title>Study Tracker</title>
 <style>
 :root{
   --bg:#f9f7f4;--surface:#ffffff;--border:#e8e4de;--border2:#d4cfc8;
@@ -18,7 +18,7 @@
 html,body{height:100%;background:var(--bg)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 .app{max-width:480px;margin:0 auto;padding:0 0 90px;min-height:100vh}
-.header{padding:env(safe-area-inset-top, 20px) 16px 0;padding-top:calc(env(safe-area-inset-top, 0px) + 20px);margin-bottom:20px}
+.header{padding:calc(env(safe-area-inset-top,0px) + 20px) 16px 0;margin-bottom:20px}
 .header h1{font-size:17px;font-weight:600;letter-spacing:.01em;color:var(--text)}
 .header p{font-size:12px;color:var(--text3);margin-top:3px}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(249,247,244,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:0.5px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -36,7 +36,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .goal-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px}
 .goal-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .goal-label{font-size:13px;color:var(--text);font-weight:500;flex:1}
-.goal-input{padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);-webkit-appearance:none}
+.goal-input{padding:6px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);-webkit-appearance:none;font-family:inherit}
 .goal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .gs-item{text-align:center}
 .gs-val{font-size:16px;font-weight:600;color:var(--text)}
@@ -53,20 +53,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .cnt-btn:active{background:var(--accent-light);transform:scale(.93)}
 .cnt-num{font-size:20px;font-weight:700;color:var(--text);flex:1;text-align:center;line-height:1}
 .fc-goal{font-size:10px;color:var(--text3);text-align:center;margin-top:4px}
+.fc-lap{font-size:10px;color:var(--accent);text-align:center;margin-top:2px;font-weight:600}
+/* settings */
 .settings-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .sc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
 .sc-head{display:flex;align-items:center;margin-bottom:10px;gap:8px}
-.sc-name{font-size:14px;font-weight:600;color:var(--text);flex:1}
-.sc-del{font-size:12px;color:var(--accent);border:0.5px solid #f0c4b8;border-radius:6px;padding:3px 8px;background:transparent;cursor:pointer;font-family:inherit}
+.sc-name-input{flex:1;padding:5px 8px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-weight:600;background:var(--bg);color:var(--text);font-family:inherit}
+.sc-del{font-size:12px;color:var(--accent);border:0.5px solid #f0c4b8;border-radius:6px;padding:3px 8px;background:transparent;cursor:pointer;font-family:inherit;white-space:nowrap}
 .sc-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .sc-field{display:flex;flex-direction:column;gap:4px}
 .sc-fl{font-size:10px;color:var(--text3)}
 .sc-input{padding:6px 8px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);color:var(--text);width:100%;font-family:inherit}
+.sc-mastery{font-size:13px;font-weight:600;color:var(--accent);padding:6px 8px;background:var(--accent-light);border-radius:var(--radius-sm);text-align:center}
 .sc-textarea{width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:12px;resize:none;min-height:52px;background:var(--bg);color:var(--text);font-family:inherit}
 .add-field-card{background:var(--accent-light);border:0.5px dashed var(--accent-mid);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;display:flex;gap:8px;align-items:center}
 .add-field-card input{flex:1;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit}
-.btn-add{padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.btn-add{padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap}
 .btn-add:active{opacity:.8}
+/* heatmap */
 .hm-wrap{padding:0 16px;margin-bottom:16px}
 .hm-field-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
 .hm-field-scroll::-webkit-scrollbar{display:none}
@@ -91,7 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 <body>
 <div class="app">
   <div class="header">
-    <h1>学習トラッカー</h1>
+    <h1>Study Tracker</h1>
     <p id="header-date"></p>
   </div>
   <div id="tab-counter"></div>
@@ -112,17 +116,33 @@ const HM_COLORS=['#f9f7f4','#f5ddd5','#e8957a','#d4684a','#c0664a','#8a3d2e'];
 function loadData(){
   try{const d=JSON.parse(localStorage.getItem('shikaku_v4')||'null');if(d)return d;}catch(e){}
   return{goalDate:'',fields:[
-    {name:'法規・法令',total:200,dailyGoal:10,mastery:70,memo:'',counts:{}},
-    {name:'財務・会計',total:150,dailyGoal:8,mastery:45,memo:'',counts:{}},
-    {name:'マーケティング',total:180,dailyGoal:10,mastery:30,memo:'',counts:{}},
+    {name:'法規・法令',total:200,dailyGoal:10,prevSolved:0,memo:'',counts:{}},
+    {name:'財務・会計',total:150,dailyGoal:8,prevSolved:0,memo:'',counts:{}},
+    {name:'マーケティング',total:180,dailyGoal:10,prevSolved:0,memo:'',counts:{}},
   ]};
 }
 let data=loadData();
+
+// 旧データのmasteryをprevSolvedに変換（移行）
+data.fields.forEach(f=>{
+  if(f.prevSolved===undefined)f.prevSolved=0;
+  if(f.mastery!==undefined)delete f.mastery;
+});
+
 let hmFieldIdx=0;
 
 function save(){try{localStorage.setItem('shikaku_v4',JSON.stringify(data));}catch(e){}}
 function todayStr(){return new Date().toISOString().slice(0,10);}
-function totalSolved(f){return Object.values(f.counts||{}).reduce((a,v)=>a+v,0);}
+
+// 累計解答数（カウンター合計）
+function totalCounted(f){return Object.values(f.counts||{}).reduce((a,v)=>a+v,0);}
+// 全解答数（既存＋カウンター）
+function totalSolved(f){return (f.prevSolved||0)+totalCounted(f);}
+// 習熟度（自動計算）
+function mastery(f){return f.total>0?Math.min(100,Math.round(totalSolved(f)/f.total*100)):0;}
+// 何周目（自動計算）
+function lapCount(f){return f.total>0?Math.floor(totalSolved(f)/f.total)+1:1;}
+// 今日のカウント
 function todayCount(f){return(f.counts||{})[todayStr()]||0;}
 
 function calcStreak(){
@@ -157,7 +177,7 @@ function renderCounter(){
   const totalQ=data.fields.reduce((a,f)=>a+f.total,0);
   const solvedQ=data.fields.reduce((a,f)=>a+totalSolved(f),0);
   const todayQ=data.fields.reduce((a,f)=>a+todayCount(f),0);
-  const avgM=data.fields.length?Math.round(data.fields.reduce((a,f)=>a+f.mastery,0)/data.fields.length):0;
+  const avgM=data.fields.length?Math.round(data.fields.reduce((a,f)=>a+mastery(f),0)/data.fields.length):0;
   const streak=calcStreak();
 
   let html=`<div class="metrics">
@@ -166,7 +186,7 @@ function renderCounter(){
     <div class="mc"><div class="mc-label">今日</div><div class="mc-value">${todayQ}問</div></div>
   </div>`;
 
-  const streakMsg=streak===0?'まだ記録がありません':streak>=7?`${streak}日連続！すごい`:streak>=3?`${streak}日連続継続中`:`${streak}日連続継続中`;
+  const streakMsg=streak===0?'まだ記録がありません':streak>=7?`${streak}日連続！すごい`:`${streak}日連続継続中`;
   const streakSub=streak===0?'今日から始めましょう':streak>=7?'この調子で続けましょう':'毎日続けると習慣になります';
   html+=`<div class="streak-card">
     <div class="streak-num">${streak}</div>
@@ -197,16 +217,19 @@ function renderCounter(){
   data.fields.forEach((f,i)=>{
     const c=todayCount(f);
     const pct=f.dailyGoal>0?Math.min(100,Math.round(c/f.dailyGoal*100)):0;
+    const m=mastery(f);
+    const lap=lapCount(f);
     html+=`<div class="fc">
       <div class="fc-name">${f.name}</div>
-      <div class="fc-sub">累計 ${totalSolved(f)}/${f.total}問</div>
-      <div class="fc-bar-bg"><div class="fc-bar-fill" style="width:${pct}%"></div></div>
+      <div class="fc-sub">習熟度 ${m}% ／ 累計 ${totalSolved(f)}/${f.total}問</div>
+      <div class="fc-bar-bg"><div class="fc-bar-fill" style="width:${m}%"></div></div>
       <div class="counter-row">
         <button class="cnt-btn" onclick="increment(${i},-1)">−</button>
         <span class="cnt-num">${c}</span>
         <button class="cnt-btn" onclick="increment(${i},1)">＋</button>
       </div>
-      <div class="fc-goal">目標 ${f.dailyGoal}問</div>
+      <div class="fc-goal">今日の目標 ${f.dailyGoal}問</div>
+      <div class="fc-lap">${lap}周目</div>
     </div>`;
   });
   html+='</div>';
@@ -280,12 +303,21 @@ function renderHeatmap(){
 function renderSettings(){
   let html='<div class="sec-label" style="margin-top:4px">分野の設定</div><div class="settings-list">';
   data.fields.forEach((f,i)=>{
+    const m=mastery(f);
+    const lap=lapCount(f);
     html+=`<div class="sc">
-      <div class="sc-head"><span class="sc-name">${f.name}</span><button class="sc-del" onclick="removeField(${i})">削除</button></div>
+      <div class="sc-head">
+        <input class="sc-name-input" type="text" value="${f.name}" onchange="updF(${i},'name',this.value)" placeholder="分野名">
+        <button class="sc-del" onclick="removeField(${i})">削除</button>
+      </div>
       <div class="sc-fields">
         <div class="sc-field"><span class="sc-fl">全体問題数</span><input class="sc-input" type="number" min="0" value="${f.total}" onchange="updF(${i},'total',this.value)"></div>
         <div class="sc-field"><span class="sc-fl">1日目標</span><input class="sc-input" type="number" min="0" value="${f.dailyGoal}" onchange="updF(${i},'dailyGoal',this.value)"></div>
-        <div class="sc-field"><span class="sc-fl">習熟度%</span><input class="sc-input" type="number" min="0" max="100" value="${f.mastery}" onchange="updF(${i},'mastery',this.value)"></div>
+        <div class="sc-field"><span class="sc-fl">既存の解答数</span><input class="sc-input" type="number" min="0" value="${f.prevSolved||0}" onchange="updF(${i},'prevSolved',this.value)"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div class="sc-field"><span class="sc-fl">習熟度（自動）</span><div class="sc-mastery">${m}%</div></div>
+        <div class="sc-field"><span class="sc-fl">周回数（自動）</span><div class="sc-mastery">${lap}周目</div></div>
       </div>
       <textarea class="sc-textarea" placeholder="メモ..." onchange="updF(${i},'memo',this.value)">${f.memo||''}</textarea>
     </div>`;
@@ -308,8 +340,10 @@ function renderSettings(){
 }
 
 function updF(i,key,val){
-  if(['mastery','total','dailyGoal'].includes(key))val=parseInt(val)||0;
-  data.fields[i][key]=val;save();
+  if(['total','dailyGoal','prevSolved'].includes(key))val=parseInt(val)||0;
+  data.fields[i][key]=val;
+  save();
+  if(key==='name')renderCounter();
 }
 function removeField(i){
   if(!confirm('「'+data.fields[i].name+'」を削除しますか？'))return;
@@ -320,13 +354,13 @@ function removeField(i){
 function addField(){
   const inp=document.getElementById('new-name');
   const name=inp.value.trim();if(!name)return;
-  data.fields.push({name,total:100,dailyGoal:10,mastery:0,memo:'',counts:{}});
+  data.fields.push({name,total:100,dailyGoal:10,prevSolved:0,memo:'',counts:{}});
   inp.value='';save();renderSettings();
 }
 function exportData(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='shikaku_data.json';a.click();
+  a.download='study_tracker_data.json';a.click();
 }
 function importData(e){
   const file=e.target.files[0];if(!file)return;
