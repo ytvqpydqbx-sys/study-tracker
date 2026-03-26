@@ -158,7 +158,7 @@ function updateHeaderStreak(){
   if(!el)return;
   el.innerHTML=`<span class="header-streak-num">${streak}</span><span class="header-streak-label">日連続</span>`;
 }
-
+ 
   const allDates=new Set();
   data.fields.forEach(f=>{Object.entries(f.counts||{}).forEach(([k,v])=>{if(v>0)allDates.add(k);});});
   let streak=0;
