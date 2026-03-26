@@ -19,16 +19,23 @@ html,body{height:100%;background:var(--bg)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 .app{max-width:480px;margin:0 auto;padding:0 0 90px;min-height:100vh}
 .header{padding:calc(env(safe-area-inset-top,0px) + 20px) 16px 0;margin-bottom:20px}
+.header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .header h1{font-size:17px;font-weight:600;letter-spacing:.01em;color:var(--text)}
 .header p{font-size:12px;color:var(--text3);margin-top:3px}
+.header-streak{display:flex;align-items:center;gap:5px;background:var(--accent-light);border:0.5px solid var(--accent-mid);border-radius:99px;padding:5px 12px;flex-shrink:0}
+.header-streak-num{font-size:16px;font-weight:700;color:var(--accent);line-height:1}
+.header-streak-label{font-size:11px;color:var(--accent);white-space:nowrap}
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(249,247,244,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:0.5px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
 .nav-btn{flex:1;padding:12px 0 14px;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;cursor:pointer;color:var(--text3);font-size:12px;font-family:inherit}
 .nav-btn.active{color:var(--accent);font-weight:600}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:16px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px;margin-bottom:16px}
 .mc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 12px 10px}
 .mc-label{font-size:10px;color:var(--text3);margin-bottom:5px;letter-spacing:.02em}
 .mc-value{font-size:19px;font-weight:600;color:var(--text);line-height:1}
 .mc-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.today-big{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 16px;margin:0 16px 16px;text-align:center}
+.today-big-num{font-size:64px;font-weight:700;color:var(--accent);line-height:1}
+.today-big-label{font-size:12px;color:var(--text3);margin-top:6px}
 .streak-card{background:var(--accent-light);border:0.5px solid var(--accent-mid);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;display:flex;align-items:center;gap:12px}
 .streak-num{font-size:36px;font-weight:700;color:var(--accent);line-height:1}
 .streak-label{font-size:13px;font-weight:600;color:var(--accent)}
@@ -43,17 +50,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .gs-label{font-size:10px;color:var(--text3);margin-top:2px}
 .sec-label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text3);padding:0 16px;margin-bottom:8px}
 .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;margin-bottom:16px}
-.fc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 14px 12px;display:flex;flex-direction:column}
-.fc-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fc-sub{font-size:11px;color:var(--text3);margin-bottom:10px}
-.fc-bar-bg{height:4px;background:var(--accent-light);border-radius:99px;overflow:hidden;margin-bottom:12px}
-.fc-bar-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .3s}
-.counter-row{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.cnt-btn{width:36px;height:36px;border-radius:8px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 14px 12px;display:flex;flex-direction:column;cursor:pointer;transition:border-color .15s}
+.fc:active{border-color:var(--accent-mid)}
+.fc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.fc-name{font-size:13px;font-weight:600;color:var(--text)}
+.fc-arrow{font-size:11px;color:var(--text3);transition:transform .2s}
+.fc-arrow.open{transform:rotate(180deg)}
+.fc-lap{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:3px}
+.fc-goal-line{font-size:11px;color:var(--text3);margin-bottom:8px}
+.counter-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:10px}
+.cnt-btn{width:36px;height:36px;border-radius:8px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cnt-btn:active{background:var(--accent-light);transform:scale(.93)}
-.cnt-num{font-size:20px;font-weight:700;color:var(--text);flex:1;text-align:center;line-height:1}
-.fc-goal{font-size:10px;color:var(--text3);text-align:center;margin-top:4px}
-.fc-lap{font-size:10px;color:var(--accent);text-align:center;margin-top:2px;font-weight:600}
+.cnt-num{font-size:24px;font-weight:700;color:var(--text);flex:1;text-align:center;line-height:1}
+.fc-bar-bg{height:5px;background:var(--accent-light);border-radius:99px;overflow:hidden}
+.fc-bar-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .3s}
+.fc-detail{margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);display:none;flex-direction:column;gap:6px}
+.fc-detail.open{display:flex}
+.fc-detail-row{display:flex;justify-content:space-between;align-items:center}
+.fc-detail-label{font-size:11px;color:var(--text3)}
+.fc-detail-val{font-size:12px;font-weight:600;color:var(--text)}
+.fc-memo{font-size:11px;color:var(--text2);font-style:italic;margin-top:2px}
 .settings-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .sc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
 .sc-head{display:flex;align-items:center;margin-bottom:10px;gap:8px}
@@ -93,8 +109,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 <body>
 <div class="app">
   <div class="header">
-    <h1>Study Tracker</h1>
-    <p id="header-date"></p>
+    <div class="header-row">
+      <div>
+        <h1>Study Tracker</h1>
+        <p id="header-date"></p>
+      </div>
+      <div class="header-streak" id="header-streak"></div>
+    </div>
   </div>
   <div id="tab-counter"></div>
   <div id="tab-heatmap" style="display:none"></div>
@@ -123,14 +144,21 @@ data.fields.forEach(f=>{
   if(f.mastery!==undefined)delete f.mastery;
 });
 let hmFieldIdx=0;
+let openCards=new Set();
 function save(){try{localStorage.setItem('shikaku_v4',JSON.stringify(data));}catch(e){}}
 function todayStr(){return new Date().toISOString().slice(0,10);}
 function totalCounted(f){return Object.values(f.counts||{}).reduce((a,v)=>a+v,0);}
 function totalSolved(f){return (f.prevSolved||0)+totalCounted(f);}
-function mastery(f){return f.total>0?Math.min(100,Math.round(totalSolved(f)/f.total*100)):0;}
+function progress(f){return f.total>0?Math.min(100,Math.round(totalSolved(f)/f.total*100)):0;}
 function lapCount(f){return f.total>0?Math.floor(totalSolved(f)/f.total)+1:1;}
 function todayCount(f){return(f.counts||{})[todayStr()]||0;}
-function calcStreak(){
+function updateHeaderStreak(){
+  const streak=calcStreak();
+  const el=document.getElementById('header-streak');
+  if(!el)return;
+  el.innerHTML=`<span class="header-streak-num">${streak}</span><span class="header-streak-label">日連続</span>`;
+}
+
   const allDates=new Set();
   data.fields.forEach(f=>{Object.entries(f.counts||{}).forEach(([k,v])=>{if(v>0)allDates.add(k);});});
   let streak=0;
@@ -155,16 +183,25 @@ function showTab(name){
   if(name==='heatmap')renderHeatmap();
   if(name==='settings')renderSettings();
 }
+function toggleCard(i){
+  if(openCards.has(i))openCards.delete(i);
+  else openCards.add(i);
+  renderCounter();
+}
 function renderCounter(){
+  updateHeaderStreak();
   const totalQ=data.fields.reduce((a,f)=>a+f.total,0);
   const solvedQ=data.fields.reduce((a,f)=>a+totalSolved(f),0);
   const todayQ=data.fields.reduce((a,f)=>a+todayCount(f),0);
-  const avgM=data.fields.length?Math.round(data.fields.reduce((a,f)=>a+mastery(f),0)/data.fields.length):0;
+  const avgP=data.fields.length?Math.round(data.fields.reduce((a,f)=>a+progress(f),0)/data.fields.length):0;
   const streak=calcStreak();
-  let html=`<div class="metrics">
-    <div class="mc"><div class="mc-label">平均習熟度</div><div class="mc-value">${avgM}%</div></div>
+  let html=`<div class="today-big">
+    <div class="today-big-num">${todayQ}</div>
+    <div class="today-big-label">今日の解答数</div>
+  </div>`;
+  html+=`<div class="metrics">
+    <div class="mc"><div class="mc-label">平均進捗率</div><div class="mc-value">${avgP}%</div></div>
     <div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">${solvedQ}</div><div class="mc-sub">全${totalQ}問</div></div>
-    <div class="mc"><div class="mc-label">今日</div><div class="mc-value">${todayQ}問</div></div>
   </div>`;
   const streakMsg=streak===0?'まだ記録がありません':streak>=7?`${streak}日連続！すごい`:`${streak}日連続継続中`;
   const streakSub=streak===0?'今日から始めましょう':streak>=7?'この調子で続けましょう':'毎日続けると習慣になります';
@@ -194,20 +231,37 @@ function renderCounter(){
   html+='<div class="sec-label">分野別カウンター</div><div class="fields-grid">';
   data.fields.forEach((f,i)=>{
     const c=todayCount(f);
-    const pct=f.dailyGoal>0?Math.min(100,Math.round(c/f.dailyGoal*100)):0;
-    const m=mastery(f);
+    const p=progress(f);
     const lap=lapCount(f);
-    html+=`<div class="fc">
-      <div class="fc-name">${f.name}</div>
-      <div class="fc-sub">習熟度 ${m}% ／ 累計 ${totalSolved(f)}/${f.total}問</div>
-      <div class="fc-bar-bg"><div class="fc-bar-fill" style="width:${m}%"></div></div>
-      <div class="counter-row">
+    const isOpen=openCards.has(i);
+    html+=`<div class="fc" onclick="toggleCard(${i})">
+      <div class="fc-header">
+        <span class="fc-name">${f.name}</span>
+        <span class="fc-arrow${isOpen?' open':''}">▾</span>
+      </div>
+      <div class="fc-lap">${lap}周目</div>
+      <div class="fc-goal-line">目標 ${f.dailyGoal}問／日</div>
+      <div class="counter-row" onclick="event.stopPropagation()">
         <button class="cnt-btn" onclick="increment(${i},-1)">−</button>
         <span class="cnt-num">${c}</span>
         <button class="cnt-btn" onclick="increment(${i},1)">＋</button>
       </div>
-      <div class="fc-goal">今日の目標 ${f.dailyGoal}問</div>
-      <div class="fc-lap">${lap}周目</div>
+      <div class="fc-bar-bg"><div class="fc-bar-fill" style="width:${p}%"></div></div>
+      <div class="fc-detail${isOpen?' open':''}">
+        <div class="fc-detail-row">
+          <span class="fc-detail-label">進捗率</span>
+          <span class="fc-detail-val">${p}%</span>
+        </div>
+        <div class="fc-detail-row">
+          <span class="fc-detail-label">累計解答</span>
+          <span class="fc-detail-val">${totalSolved(f)} / ${f.total}問</span>
+        </div>
+        <div class="fc-detail-row">
+          <span class="fc-detail-label">既存解答数</span>
+          <span class="fc-detail-val">${f.prevSolved||0}問</span>
+        </div>
+        ${f.memo?`<div class="fc-memo">${f.memo}</div>`:''}
+      </div>
     </div>`;
   });
   html+='</div>';
@@ -275,7 +329,7 @@ function renderHeatmap(){
 function renderSettings(){
   let html='<div class="sec-label" style="margin-top:4px">分野の設定</div><div class="settings-list">';
   data.fields.forEach((f,i)=>{
-    const m=mastery(f);
+    const p=progress(f);
     const lap=lapCount(f);
     html+=`<div class="sc">
       <div class="sc-head">
@@ -288,7 +342,7 @@ function renderSettings(){
         <div class="sc-field"><span class="sc-fl">既存の解答数</span><input class="sc-input" type="number" min="0" value="${f.prevSolved||0}" onchange="updF(${i},'prevSolved',this.value)"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div class="sc-field"><span class="sc-fl">習熟度（自動）</span><div class="sc-mastery">${m}%</div></div>
+        <div class="sc-field"><span class="sc-fl">進捗率（自動）</span><div class="sc-mastery">${p}%</div></div>
         <div class="sc-field"><span class="sc-fl">周回数（自動）</span><div class="sc-mastery">${lap}周目</div></div>
       </div>
       <textarea class="sc-textarea" placeholder="メモ..." onchange="updF(${i},'memo',this.value)">${f.memo||''}</textarea>
@@ -319,6 +373,7 @@ function updF(i,key,val){
 function removeField(i){
   if(!confirm('「'+data.fields[i].name+'」を削除しますか？'))return;
   data.fields.splice(i,1);
+  openCards.delete(i);
   if(hmFieldIdx>=data.fields.length)hmFieldIdx=Math.max(0,data.fields.length-1);
   save();renderSettings();
 }
