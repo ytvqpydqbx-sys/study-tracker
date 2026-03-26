@@ -129,7 +129,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 var MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 var DOWS=['日','月','火','水','木','金','土'];
 var HM_COLORS=['#f9f7f4','#f5ddd5','#e8957a','#d4684a','#c0664a','#8a3d2e'];
-
+ 
 function loadData(){
   try{var d=JSON.parse(localStorage.getItem('shikaku_v4')||'null');if(d)return d;}catch(e){}
   return{goalDate:'',fields:[
@@ -145,7 +145,7 @@ data.fields.forEach(function(f){
 });
 var hmFieldIdx=0;
 var openCards={};
-
+ 
 function save(){try{localStorage.setItem('shikaku_v4',JSON.stringify(data));}catch(e){}}
 function todayStr(){return new Date().toISOString().slice(0,10);}
 function totalCounted(f){
@@ -157,7 +157,7 @@ function totalSolved(f){return (f.prevSolved||0)+totalCounted(f);}
 function progress(f){return f.total>0?Math.min(100,Math.round(totalSolved(f)/f.total*100)):0;}
 function lapCount(f){return f.total>0?Math.floor(totalSolved(f)/f.total)+1:1;}
 function todayCount(f){return(f.counts||{})[todayStr()]||0;}
-
+ 
 function calcStreak(){
   var allDates={};
   data.fields.forEach(function(f){
@@ -175,16 +175,16 @@ function calcStreak(){
   }
   return streak;
 }
-
+ 
 function updateHeaderStreak(){
   var el=document.getElementById('streak-num');
   if(el)el.textContent=calcStreak();
 }
-
+ 
 var now=new Date();
 document.getElementById('header-date').textContent=
   now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+DOWS[now.getDay()]+'）';
-
+ 
 function showTab(name){
   ['counter','heatmap','settings'].forEach(function(t){
     document.getElementById('tab-'+t).style.display=t===name?'':'none';
@@ -194,30 +194,30 @@ function showTab(name){
   if(name==='heatmap')renderHeatmap();
   if(name==='settings')renderSettings();
 }
-
+ 
 function toggleCard(i){
   if(openCards[i])delete openCards[i];
   else openCards[i]=true;
   renderCounter();
 }
-
+ 
 function renderCounter(){
   updateHeaderStreak();
   var totalQ=data.fields.reduce(function(a,f){return a+f.total;},0);
   var solvedQ=data.fields.reduce(function(a,f){return a+totalSolved(f);},0);
   var todayQ=data.fields.reduce(function(a,f){return a+todayCount(f);},0);
   var avgP=data.fields.length?Math.round(data.fields.reduce(function(a,f){return a+progress(f);},0)/data.fields.length):0;
-
+ 
   var html='<div class="today-big">'
     +'<div class="today-big-num">'+todayQ+'</div>'
     +'<div class="today-big-label">今日の解答数</div>'
     +'</div>';
-
+ 
   html+='<div class="metrics">'
     +'<div class="mc"><div class="mc-label">平均進捗率</div><div class="mc-value">'+avgP+'%</div></div>'
     +'<div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">'+solvedQ+'</div><div class="mc-sub">全'+totalQ+'問</div></div>'
     +'</div>';
-
+ 
   var goalContent='<div style="font-size:12px;color:var(--text3)">目標日を設定すると逆算できます</div>';
   if(data.goalDate){
     var n=new Date();n.setHours(0,0,0,0);
@@ -235,7 +235,7 @@ function renderCounter(){
     +'<div class="goal-row"><span class="goal-label">一周目標日</span>'
     +'<input class="goal-input" type="date" id="goal-date" value="'+(data.goalDate||'')+'" onchange="data.goalDate=this.value;save();renderCounter()">'
     +'</div>'+goalContent+'</div>';
-
+ 
   html+='<div class="sec-label">分野別カウンター</div><div class="fields-grid">';
   data.fields.forEach(function(f,i){
     var c=todayCount(f);
@@ -262,20 +262,20 @@ function renderCounter(){
   html+='</div>';
   document.getElementById('tab-counter').innerHTML=html;
 }
-
+ 
 function increment(i,delta){
   var t=todayStr();
   if(!data.fields[i].counts)data.fields[i].counts={};
   data.fields[i].counts[t]=Math.max(0,(data.fields[i].counts[t]||0)+delta);
   save();renderCounter();
 }
-
+ 
 function hmColor(ratio){
   if(ratio<=0)return HM_COLORS[0];
   var idx=Math.min(HM_COLORS.length-1,Math.ceil(ratio*(HM_COLORS.length-1)));
   return HM_COLORS[idx];
 }
-
+ 
 function renderHeatmap(){
   if(!data.fields.length){
     document.getElementById('tab-heatmap').innerHTML='<div style="padding:32px 16px;text-align:center;font-size:13px;color:var(--text3)">設定タブで分野を追加してください</div>';
@@ -289,7 +289,7 @@ function renderHeatmap(){
   var firstDow=new Date(yr,mo,1).getDay();
   var f=data.fields[hmFieldIdx];
   var counts=f.counts||{};
-
+ 
   var html='<div class="hm-wrap"><div class="hm-field-scroll">';
   data.fields.forEach(function(fd,i){
     html+='<button class="hm-fb'+(i===hmFieldIdx?' active':'')+'" onclick="hmFieldIdx='+i+';renderHeatmap()">'+fd.name+'</button>';
@@ -311,7 +311,7 @@ function renderHeatmap(){
   html+='<div class="hm-legend"><span>0問</span>';
   HM_COLORS.forEach(function(c){html+='<div class="hm-lc" style="background:'+c+'"></div>';});
   html+='<span>目標達成</span></div></div>';
-
+ 
   var monthTotal=0;
   for(var d2=1;d2<=daysInMonth;d2++){
     var key2=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');
@@ -326,7 +326,7 @@ function renderHeatmap(){
     +'</div></div>';
   document.getElementById('tab-heatmap').innerHTML=html;
 }
-
+ 
 function renderSettings(){
   var html='<div class="sec-label" style="margin-top:4px">分野の設定</div><div class="settings-list">';
   data.fields.forEach(function(f,i){
@@ -361,7 +361,7 @@ function renderSettings(){
   html+='<div class="hint-card"><b>iPhoneでホーム画面に追加する方法</b><br>Safari でこのページを開く → 下部の共有ボタン（□↑）→「ホーム画面に追加」→「追加」<br><br>データはこのiPhone内に自動保存されます。機種変更時は「書き出す」でバックアップを取ってください。</div>';
   document.getElementById('tab-settings').innerHTML=html;
 }
-
+ 
 function updF(i,key,val){
   if(key==='total'||key==='dailyGoal'||key==='prevSolved')val=parseInt(val)||0;
   data.fields[i][key]=val;
