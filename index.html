@@ -20,8 +20,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .app{max-width:480px;margin:0 auto;padding:0 0 90px;min-height:100vh}
 .header{padding:calc(env(safe-area-inset-top,0px) + 20px) 16px 0;margin-bottom:20px}
 .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.header h1{font-size:17px;font-weight:600;letter-spacing:.01em;color:var(--text)}
-.header p{font-size:12px;color:var(--text3);margin-top:3px}
+.header-left h1{font-size:17px;font-weight:600;letter-spacing:.01em;color:var(--text)}
+.header-left p{font-size:12px;color:var(--text3);margin-top:3px}
 .header-streak{display:flex;align-items:center;gap:5px;background:var(--accent-light);border:0.5px solid var(--accent-mid);border-radius:99px;padding:5px 12px;flex-shrink:0}
 .header-streak-num{font-size:16px;font-weight:700;color:var(--accent);line-height:1}
 .header-streak-label{font-size:11px;color:var(--accent);white-space:nowrap}
@@ -36,10 +36,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .today-big{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:18px 16px;margin:0 16px 16px;text-align:center}
 .today-big-num{font-size:64px;font-weight:700;color:var(--accent);line-height:1}
 .today-big-label{font-size:12px;color:var(--text3);margin-top:6px}
-.streak-card{background:var(--accent-light);border:0.5px solid var(--accent-mid);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;display:flex;align-items:center;gap:12px}
-.streak-num{font-size:36px;font-weight:700;color:var(--accent);line-height:1}
-.streak-label{font-size:13px;font-weight:600;color:var(--accent)}
-.streak-sub{font-size:11px;color:var(--text2);margin-top:2px}
 .goal-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px}
 .goal-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .goal-label{font-size:13px;color:var(--text);font-weight:500;flex:1}
@@ -110,11 +106,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 <div class="app">
   <div class="header">
     <div class="header-row">
-      <div>
+      <div class="header-left">
         <h1>Study Tracker</h1>
         <p id="header-date"></p>
       </div>
-      <div class="header-streak" id="header-streak"></div>
+      <div class="header-streak" id="header-streak">
+        <span class="header-streak-num" id="streak-num">0</span>
+        <span class="header-streak-label">日連続</span>
+      </div>
     </div>
   </div>
   <div id="tab-counter"></div>
@@ -127,55 +126,67 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
   </nav>
 </div>
 <script>
-const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-const DOWS=['日','月','火','水','木','金','土'];
-const HM_COLORS=['#f9f7f4','#f5ddd5','#e8957a','#d4684a','#c0664a','#8a3d2e'];
+var MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+var DOWS=['日','月','火','水','木','金','土'];
+var HM_COLORS=['#f9f7f4','#f5ddd5','#e8957a','#d4684a','#c0664a','#8a3d2e'];
+
 function loadData(){
-  try{const d=JSON.parse(localStorage.getItem('shikaku_v4')||'null');if(d)return d;}catch(e){}
+  try{var d=JSON.parse(localStorage.getItem('shikaku_v4')||'null');if(d)return d;}catch(e){}
   return{goalDate:'',fields:[
     {name:'法規・法令',total:200,dailyGoal:10,prevSolved:0,memo:'',counts:{}},
     {name:'財務・会計',total:150,dailyGoal:8,prevSolved:0,memo:'',counts:{}},
     {name:'マーケティング',total:180,dailyGoal:10,prevSolved:0,memo:'',counts:{}},
   ]};
 }
-let data=loadData();
-data.fields.forEach(f=>{
+var data=loadData();
+data.fields.forEach(function(f){
   if(f.prevSolved===undefined)f.prevSolved=0;
   if(f.mastery!==undefined)delete f.mastery;
 });
-let hmFieldIdx=0;
-let openCards=new Set();
+var hmFieldIdx=0;
+var openCards={};
+
 function save(){try{localStorage.setItem('shikaku_v4',JSON.stringify(data));}catch(e){}}
 function todayStr(){return new Date().toISOString().slice(0,10);}
-function totalCounted(f){return Object.values(f.counts||{}).reduce((a,v)=>a+v,0);}
+function totalCounted(f){
+  var s=0;
+  Object.keys(f.counts||{}).forEach(function(k){s+=f.counts[k];});
+  return s;
+}
 function totalSolved(f){return (f.prevSolved||0)+totalCounted(f);}
 function progress(f){return f.total>0?Math.min(100,Math.round(totalSolved(f)/f.total*100)):0;}
 function lapCount(f){return f.total>0?Math.floor(totalSolved(f)/f.total)+1:1;}
 function todayCount(f){return(f.counts||{})[todayStr()]||0;}
-function updateHeaderStreak(){
-  const streak=calcStreak();
-  const el=document.getElementById('header-streak');
-  if(!el)return;
-  el.innerHTML=`<span class="header-streak-num">${streak}</span><span class="header-streak-label">日連続</span>`;
-}
- 
-  const allDates=new Set();
-  data.fields.forEach(f=>{Object.entries(f.counts||{}).forEach(([k,v])=>{if(v>0)allDates.add(k);});});
-  let streak=0;
-  const d=new Date();
-  if(!allDates.has(todayStr()))d.setDate(d.getDate()-1);
+
+function calcStreak(){
+  var allDates={};
+  data.fields.forEach(function(f){
+    Object.keys(f.counts||{}).forEach(function(k){if(f.counts[k]>0)allDates[k]=true;});
+  });
+  var streak=0;
+  var d=new Date();
+  var t=todayStr();
+  if(!allDates[t]){d.setDate(d.getDate()-1);}
   while(true){
-    const key=d.toISOString().slice(0,10);
-    if(!allDates.has(key))break;
-    streak++;d.setDate(d.getDate()-1);
+    var key=d.toISOString().slice(0,10);
+    if(!allDates[key])break;
+    streak++;
+    d.setDate(d.getDate()-1);
   }
   return streak;
 }
-const now=new Date();
+
+function updateHeaderStreak(){
+  var el=document.getElementById('streak-num');
+  if(el)el.textContent=calcStreak();
+}
+
+var now=new Date();
 document.getElementById('header-date').textContent=
   now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+DOWS[now.getDay()]+'）';
+
 function showTab(name){
-  ['counter','heatmap','settings'].forEach(t=>{
+  ['counter','heatmap','settings'].forEach(function(t){
     document.getElementById('tab-'+t).style.display=t===name?'':'none';
     document.getElementById('nav-'+t).classList.toggle('active',t===name);
   });
@@ -183,189 +194,176 @@ function showTab(name){
   if(name==='heatmap')renderHeatmap();
   if(name==='settings')renderSettings();
 }
+
 function toggleCard(i){
-  if(openCards.has(i))openCards.delete(i);
-  else openCards.add(i);
+  if(openCards[i])delete openCards[i];
+  else openCards[i]=true;
   renderCounter();
 }
+
 function renderCounter(){
   updateHeaderStreak();
-  const totalQ=data.fields.reduce((a,f)=>a+f.total,0);
-  const solvedQ=data.fields.reduce((a,f)=>a+totalSolved(f),0);
-  const todayQ=data.fields.reduce((a,f)=>a+todayCount(f),0);
-  const avgP=data.fields.length?Math.round(data.fields.reduce((a,f)=>a+progress(f),0)/data.fields.length):0;
-  const streak=calcStreak();
-  let html=`<div class="today-big">
-    <div class="today-big-num">${todayQ}</div>
-    <div class="today-big-label">今日の解答数</div>
-  </div>`;
-  html+=`<div class="metrics">
-    <div class="mc"><div class="mc-label">平均進捗率</div><div class="mc-value">${avgP}%</div></div>
-    <div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">${solvedQ}</div><div class="mc-sub">全${totalQ}問</div></div>
-  </div>`;
-  const streakMsg=streak===0?'まだ記録がありません':streak>=7?`${streak}日連続！すごい`:`${streak}日連続継続中`;
-  const streakSub=streak===0?'今日から始めましょう':streak>=7?'この調子で続けましょう':'毎日続けると習慣になります';
-  html+=`<div class="streak-card">
-    <div class="streak-num">${streak}</div>
-    <div><div class="streak-label">${streakMsg}</div><div class="streak-sub">${streakSub}</div></div>
-  </div>`;
-  let goalContent='<div style="font-size:12px;color:var(--text3)">目標日を設定すると逆算できます</div>';
+  var totalQ=data.fields.reduce(function(a,f){return a+f.total;},0);
+  var solvedQ=data.fields.reduce(function(a,f){return a+totalSolved(f);},0);
+  var todayQ=data.fields.reduce(function(a,f){return a+todayCount(f);},0);
+  var avgP=data.fields.length?Math.round(data.fields.reduce(function(a,f){return a+progress(f);},0)/data.fields.length):0;
+
+  var html='<div class="today-big">'
+    +'<div class="today-big-num">'+todayQ+'</div>'
+    +'<div class="today-big-label">今日の解答数</div>'
+    +'</div>';
+
+  html+='<div class="metrics">'
+    +'<div class="mc"><div class="mc-label">平均進捗率</div><div class="mc-value">'+avgP+'%</div></div>'
+    +'<div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">'+solvedQ+'</div><div class="mc-sub">全'+totalQ+'問</div></div>'
+    +'</div>';
+
+  var goalContent='<div style="font-size:12px;color:var(--text3)">目標日を設定すると逆算できます</div>';
   if(data.goalDate){
-    const n=new Date();n.setHours(0,0,0,0);
-    const g=new Date(data.goalDate);g.setHours(0,0,0,0);
-    const days=Math.max(0,Math.round((g-n)/864e5));
-    const rem=Math.max(0,totalQ-solvedQ);
-    const per=days>0?Math.ceil(rem/days):'—';
-    goalContent=`<div class="goal-stats">
-      <div class="gs-item"><div class="gs-val">${days}日</div><div class="gs-label">残り日数</div></div>
-      <div class="gs-item"><div class="gs-val">${rem}問</div><div class="gs-label">残り問題</div></div>
-      <div class="gs-item"><div class="gs-val">${per}問</div><div class="gs-label">1日の必要数</div></div>
-    </div>`;
+    var n=new Date();n.setHours(0,0,0,0);
+    var g=new Date(data.goalDate);g.setHours(0,0,0,0);
+    var days=Math.max(0,Math.round((g-n)/864e5));
+    var rem=Math.max(0,totalQ-solvedQ);
+    var per=days>0?Math.ceil(rem/days):'—';
+    goalContent='<div class="goal-stats">'
+      +'<div class="gs-item"><div class="gs-val">'+days+'日</div><div class="gs-label">残り日数</div></div>'
+      +'<div class="gs-item"><div class="gs-val">'+rem+'問</div><div class="gs-label">残り問題</div></div>'
+      +'<div class="gs-item"><div class="gs-val">'+per+'問</div><div class="gs-label">1日の必要数</div></div>'
+      +'</div>';
   }
-  html+=`<div class="goal-card">
-    <div class="goal-row">
-      <span class="goal-label">一周目標日</span>
-      <input class="goal-input" type="date" id="goal-date" value="${data.goalDate||''}" onchange="data.goalDate=this.value;save();renderCounter()">
-    </div>${goalContent}
-  </div>`;
+  html+='<div class="goal-card">'
+    +'<div class="goal-row"><span class="goal-label">一周目標日</span>'
+    +'<input class="goal-input" type="date" id="goal-date" value="'+(data.goalDate||'')+'" onchange="data.goalDate=this.value;save();renderCounter()">'
+    +'</div>'+goalContent+'</div>';
+
   html+='<div class="sec-label">分野別カウンター</div><div class="fields-grid">';
-  data.fields.forEach((f,i)=>{
-    const c=todayCount(f);
-    const p=progress(f);
-    const lap=lapCount(f);
-    const isOpen=openCards.has(i);
-    html+=`<div class="fc" onclick="toggleCard(${i})">
-      <div class="fc-header">
-        <span class="fc-name">${f.name}</span>
-        <span class="fc-arrow${isOpen?' open':''}">▾</span>
-      </div>
-      <div class="fc-lap">${lap}周目</div>
-      <div class="fc-goal-line">目標 ${f.dailyGoal}問／日</div>
-      <div class="counter-row" onclick="event.stopPropagation()">
-        <button class="cnt-btn" onclick="increment(${i},-1)">−</button>
-        <span class="cnt-num">${c}</span>
-        <button class="cnt-btn" onclick="increment(${i},1)">＋</button>
-      </div>
-      <div class="fc-bar-bg"><div class="fc-bar-fill" style="width:${p}%"></div></div>
-      <div class="fc-detail${isOpen?' open':''}">
-        <div class="fc-detail-row">
-          <span class="fc-detail-label">進捗率</span>
-          <span class="fc-detail-val">${p}%</span>
-        </div>
-        <div class="fc-detail-row">
-          <span class="fc-detail-label">累計解答</span>
-          <span class="fc-detail-val">${totalSolved(f)} / ${f.total}問</span>
-        </div>
-        <div class="fc-detail-row">
-          <span class="fc-detail-label">既存解答数</span>
-          <span class="fc-detail-val">${f.prevSolved||0}問</span>
-        </div>
-        ${f.memo?`<div class="fc-memo">${f.memo}</div>`:''}
-      </div>
-    </div>`;
+  data.fields.forEach(function(f,i){
+    var c=todayCount(f);
+    var p=progress(f);
+    var lap=lapCount(f);
+    var isOpen=!!openCards[i];
+    html+='<div class="fc" onclick="toggleCard('+i+')">'
+      +'<div class="fc-header"><span class="fc-name">'+f.name+'</span><span class="fc-arrow'+(isOpen?' open':'')+'">▾</span></div>'
+      +'<div class="fc-lap">'+lap+'周目</div>'
+      +'<div class="fc-goal-line">目標 '+f.dailyGoal+'問／日</div>'
+      +'<div class="counter-row" onclick="event.stopPropagation()">'
+      +'<button class="cnt-btn" onclick="increment('+i+',-1)">−</button>'
+      +'<span class="cnt-num">'+c+'</span>'
+      +'<button class="cnt-btn" onclick="increment('+i+',1)">＋</button>'
+      +'</div>'
+      +'<div class="fc-bar-bg"><div class="fc-bar-fill" style="width:'+p+'%"></div></div>'
+      +'<div class="fc-detail'+(isOpen?' open':'')+'">'
+      +'<div class="fc-detail-row"><span class="fc-detail-label">進捗率</span><span class="fc-detail-val">'+p+'%</span></div>'
+      +'<div class="fc-detail-row"><span class="fc-detail-label">累計解答</span><span class="fc-detail-val">'+totalSolved(f)+' / '+f.total+'問</span></div>'
+      +'<div class="fc-detail-row"><span class="fc-detail-label">既存解答数</span><span class="fc-detail-val">'+( f.prevSolved||0)+'問</span></div>'
+      +(f.memo?'<div class="fc-memo">'+f.memo+'</div>':'')
+      +'</div></div>';
   });
   html+='</div>';
   document.getElementById('tab-counter').innerHTML=html;
 }
+
 function increment(i,delta){
-  const t=todayStr();
+  var t=todayStr();
   if(!data.fields[i].counts)data.fields[i].counts={};
   data.fields[i].counts[t]=Math.max(0,(data.fields[i].counts[t]||0)+delta);
   save();renderCounter();
 }
+
 function hmColor(ratio){
   if(ratio<=0)return HM_COLORS[0];
-  const idx=Math.min(HM_COLORS.length-1,Math.ceil(ratio*(HM_COLORS.length-1)));
+  var idx=Math.min(HM_COLORS.length-1,Math.ceil(ratio*(HM_COLORS.length-1)));
   return HM_COLORS[idx];
 }
+
 function renderHeatmap(){
   if(!data.fields.length){
     document.getElementById('tab-heatmap').innerHTML='<div style="padding:32px 16px;text-align:center;font-size:13px;color:var(--text3)">設定タブで分野を追加してください</div>';
     return;
   }
   if(hmFieldIdx>=data.fields.length)hmFieldIdx=0;
-  const now2=new Date();
-  const yr=now2.getFullYear(),mo=now2.getMonth();
-  const todayKey=todayStr();
-  const daysInMonth=new Date(yr,mo+1,0).getDate();
-  const firstDow=new Date(yr,mo,1).getDay();
-  const f=data.fields[hmFieldIdx];
-  const counts=f.counts||{};
-  let html='<div class="hm-wrap"><div class="hm-field-scroll">';
-  data.fields.forEach((fd,i)=>{
-    html+=`<button class="hm-fb${i===hmFieldIdx?' active':''}" onclick="hmFieldIdx=${i};renderHeatmap()">${fd.name}</button>`;
+  var now2=new Date();
+  var yr=now2.getFullYear(),mo=now2.getMonth();
+  var todayKey=todayStr();
+  var daysInMonth=new Date(yr,mo+1,0).getDate();
+  var firstDow=new Date(yr,mo,1).getDay();
+  var f=data.fields[hmFieldIdx];
+  var counts=f.counts||{};
+
+  var html='<div class="hm-wrap"><div class="hm-field-scroll">';
+  data.fields.forEach(function(fd,i){
+    html+='<button class="hm-fb'+(i===hmFieldIdx?' active':'')+'" onclick="hmFieldIdx='+i+';renderHeatmap()">'+fd.name+'</button>';
   });
   html+='</div>';
-  html+=`<div class="hm-month-title">${yr}年 ${MONTHS[mo]}</div><div class="hm-card">`;
-  html+='<div class="hm-dows">'+DOWS.map(d=>`<div class="hm-dow">${d}</div>`).join('')+'</div>';
+  html+='<div class="hm-month-title">'+yr+'年 '+MONTHS[mo]+'</div><div class="hm-card">';
+  html+='<div class="hm-dows">'+DOWS.map(function(d){return '<div class="hm-dow">'+d+'</div>';}).join('')+'</div>';
   html+='<div class="hm-grid">';
-  for(let e=0;e<firstDow;e++)html+=`<div></div>`;
-  for(let d=1;d<=daysInMonth;d++){
-    const key=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const cnt=counts[key]||0;
-    const ratio=f.dailyGoal>0?Math.min(1,cnt/f.dailyGoal):0;
-    const isFuture=new Date(key+' 00:00:00')>now2;
-    const isToday=key===todayKey;
-    html+=`<div class="hm-cell${isToday?' today-cell':''}" style="background:${hmColor(ratio)};opacity:${isFuture?'0.3':'1'}"></div>`;
+  for(var e=0;e<firstDow;e++)html+='<div></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cnt=counts[key]||0;
+    var ratio=f.dailyGoal>0?Math.min(1,cnt/f.dailyGoal):0;
+    var isFuture=new Date(key+' 00:00:00')>now2;
+    var isToday=key===todayKey;
+    html+='<div class="hm-cell'+(isToday?' today-cell':'')+'" style="background:'+hmColor(ratio)+';opacity:'+(isFuture?'0.3':'1')+'"></div>';
   }
   html+='</div>';
   html+='<div class="hm-legend"><span>0問</span>';
-  HM_COLORS.forEach(c=>{html+=`<div class="hm-lc" style="background:${c}"></div>`;});
+  HM_COLORS.forEach(function(c){html+='<div class="hm-lc" style="background:'+c+'"></div>';});
   html+='<span>目標達成</span></div></div>';
-  let monthTotal=0;
-  for(let d=1;d<=daysInMonth;d++){
-    const key=`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    monthTotal+=(counts[key]||0);
+
+  var monthTotal=0;
+  for(var d2=1;d2<=daysInMonth;d2++){
+    var key2=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');
+    monthTotal+=(counts[key2]||0);
   }
-  const monthTarget=f.dailyGoal*daysInMonth;
-  const monthPct=monthTarget>0?Math.round(monthTotal/monthTarget*100):0;
-  html+=`<div style="margin-top:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
-    <div><div style="font-size:19px;font-weight:600;color:var(--text)">${monthTotal}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の解答数</div></div>
-    <div><div style="font-size:19px;font-weight:600;color:var(--text)">${monthTarget}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の目標数</div></div>
-    <div><div style="font-size:19px;font-weight:600;color:var(--accent)">${monthPct}%</div><div style="font-size:10px;color:var(--text3);margin-top:2px">達成率</div></div>
-  </div></div>`;
+  var monthTarget=f.dailyGoal*daysInMonth;
+  var monthPct=monthTarget>0?Math.round(monthTotal/monthTarget*100):0;
+  html+='<div style="margin-top:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
+    +'<div><div style="font-size:19px;font-weight:600;color:var(--text)">'+monthTotal+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の解答数</div></div>'
+    +'<div><div style="font-size:19px;font-weight:600;color:var(--text)">'+monthTarget+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の目標数</div></div>'
+    +'<div><div style="font-size:19px;font-weight:600;color:var(--accent)">'+monthPct+'%</div><div style="font-size:10px;color:var(--text3);margin-top:2px">達成率</div></div>'
+    +'</div></div>';
   document.getElementById('tab-heatmap').innerHTML=html;
 }
+
 function renderSettings(){
-  let html='<div class="sec-label" style="margin-top:4px">分野の設定</div><div class="settings-list">';
-  data.fields.forEach((f,i)=>{
-    const p=progress(f);
-    const lap=lapCount(f);
-    html+=`<div class="sc">
-      <div class="sc-head">
-        <input class="sc-name-input" type="text" value="${f.name}" onchange="updF(${i},'name',this.value)" placeholder="分野名">
-        <button class="sc-del" onclick="removeField(${i})">削除</button>
-      </div>
-      <div class="sc-fields">
-        <div class="sc-field"><span class="sc-fl">全体問題数</span><input class="sc-input" type="number" min="0" value="${f.total}" onchange="updF(${i},'total',this.value)"></div>
-        <div class="sc-field"><span class="sc-fl">1日目標</span><input class="sc-input" type="number" min="0" value="${f.dailyGoal}" onchange="updF(${i},'dailyGoal',this.value)"></div>
-        <div class="sc-field"><span class="sc-fl">既存の解答数</span><input class="sc-input" type="number" min="0" value="${f.prevSolved||0}" onchange="updF(${i},'prevSolved',this.value)"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div class="sc-field"><span class="sc-fl">進捗率（自動）</span><div class="sc-mastery">${p}%</div></div>
-        <div class="sc-field"><span class="sc-fl">周回数（自動）</span><div class="sc-mastery">${lap}周目</div></div>
-      </div>
-      <textarea class="sc-textarea" placeholder="メモ..." onchange="updF(${i},'memo',this.value)">${f.memo||''}</textarea>
-    </div>`;
+  var html='<div class="sec-label" style="margin-top:4px">分野の設定</div><div class="settings-list">';
+  data.fields.forEach(function(f,i){
+    var p=progress(f);
+    var lap=lapCount(f);
+    html+='<div class="sc">'
+      +'<div class="sc-head">'
+      +'<input class="sc-name-input" type="text" value="'+f.name+'" onchange="updF('+i+',\'name\',this.value)" placeholder="分野名">'
+      +'<button class="sc-del" onclick="removeField('+i+')">削除</button>'
+      +'</div>'
+      +'<div class="sc-fields">'
+      +'<div class="sc-field"><span class="sc-fl">全体問題数</span><input class="sc-input" type="number" min="0" value="'+f.total+'" onchange="updF('+i+',\'total\',this.value)"></div>'
+      +'<div class="sc-field"><span class="sc-fl">1日目標</span><input class="sc-input" type="number" min="0" value="'+f.dailyGoal+'" onchange="updF('+i+',\'dailyGoal\',this.value)"></div>'
+      +'<div class="sc-field"><span class="sc-fl">既存の解答数</span><input class="sc-input" type="number" min="0" value="'+(f.prevSolved||0)+'" onchange="updF('+i+',\'prevSolved\',this.value)"></div>'
+      +'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+      +'<div class="sc-field"><span class="sc-fl">進捗率（自動）</span><div class="sc-mastery">'+p+'%</div></div>'
+      +'<div class="sc-field"><span class="sc-fl">周回数（自動）</span><div class="sc-mastery">'+lap+'周目</div></div>'
+      +'</div>'
+      +'<textarea class="sc-textarea" placeholder="メモ..." onchange="updF('+i+',\'memo\',this.value)">'+( f.memo||'')+'</textarea>'
+      +'</div>';
   });
-  html+=`</div><div class="add-field-card">
-    <input type="text" id="new-name" placeholder="新しい分野名...">
-    <button class="btn-add" onclick="addField()">追加</button>
-  </div>`;
-  html+=`<div class="sec-label">データ管理</div>
-  <div class="data-card">
-    <button class="btn-io" onclick="exportData()">書き出す（JSON）</button>
-    <label class="btn-io" style="cursor:pointer">読み込む（JSON）<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
-  </div>`;
-  html+=`<div class="hint-card">
-    <b>iPhoneでホーム画面に追加する方法</b><br>
-    Safari でこのページを開く → 下部の共有ボタン（□↑）→「ホーム画面に追加」→「追加」<br><br>
-    データはこのiPhone内に自動保存されます。機種変更時は「書き出す」でバックアップを取ってください。
-  </div>`;
+  html+='</div><div class="add-field-card">'
+    +'<input type="text" id="new-name" placeholder="新しい分野名...">'
+    +'<button class="btn-add" onclick="addField()">追加</button>'
+    +'</div>';
+  html+='<div class="sec-label">データ管理</div>'
+    +'<div class="data-card">'
+    +'<button class="btn-io" onclick="exportData()">書き出す（JSON）</button>'
+    +'<label class="btn-io" style="cursor:pointer">読み込む（JSON）<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>'
+    +'</div>';
+  html+='<div class="hint-card"><b>iPhoneでホーム画面に追加する方法</b><br>Safari でこのページを開く → 下部の共有ボタン（□↑）→「ホーム画面に追加」→「追加」<br><br>データはこのiPhone内に自動保存されます。機種変更時は「書き出す」でバックアップを取ってください。</div>';
   document.getElementById('tab-settings').innerHTML=html;
 }
+
 function updF(i,key,val){
-  if(['total','dailyGoal','prevSolved'].includes(key))val=parseInt(val)||0;
+  if(key==='total'||key==='dailyGoal'||key==='prevSolved')val=parseInt(val)||0;
   data.fields[i][key]=val;
   save();
   if(key==='name')renderCounter();
@@ -373,25 +371,25 @@ function updF(i,key,val){
 function removeField(i){
   if(!confirm('「'+data.fields[i].name+'」を削除しますか？'))return;
   data.fields.splice(i,1);
-  openCards.delete(i);
+  delete openCards[i];
   if(hmFieldIdx>=data.fields.length)hmFieldIdx=Math.max(0,data.fields.length-1);
   save();renderSettings();
 }
 function addField(){
-  const inp=document.getElementById('new-name');
-  const name=inp.value.trim();if(!name)return;
-  data.fields.push({name,total:100,dailyGoal:10,prevSolved:0,memo:'',counts:{}});
+  var inp=document.getElementById('new-name');
+  var name=inp.value.trim();if(!name)return;
+  data.fields.push({name:name,total:100,dailyGoal:10,prevSolved:0,memo:'',counts:{}});
   inp.value='';save();renderSettings();
 }
 function exportData(){
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='study_tracker_data.json';a.click();
 }
 function importData(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
     try{data=JSON.parse(ev.target.result);save();renderSettings();alert('読み込みました！');}
     catch(err){alert('ファイルが読み込めませんでした');}
   };
