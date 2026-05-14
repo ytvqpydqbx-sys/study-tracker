@@ -10,9 +10,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --bg:#f9f7f4;--surface:#ffffff;--border:#e8e4de;--border2:#d4cfc8;
-  --text:#1e1c1a;--text2:#6b6560;--text3:#a09890;
-  --accent:#c0664a;--accent-light:#f5ede9;--accent-mid:#e8957a;
+  --bg:#faf7f3;--surface:#ffffff;--border:#e8e1da;--border2:#ddd6ce;
+  --text:#4a3e36;--text2:#7b6a60;--text3:#a69a90;
+  --accent:#c07a5a;--accent-light:#f5ede9;--accent-mid:#d4957a;
   --nav-h:64px;--radius:10px;--radius-sm:7px;--radius-lg:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -20,22 +20,16 @@ html,body{height:100%;background:var(--bg)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
 
 /* ── ログイン画面 ── */
-#login-screen{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;padding:40px 24px;
-}
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px}
 .login-logo{margin-bottom:12px}
-.login-logo svg{display:block}
 .login-title{font-size:24px;font-weight:700;color:var(--text);letter-spacing:.01em;margin-bottom:8px;text-align:center}
 .login-sub{font-size:14px;color:var(--text3);text-align:center;line-height:1.6;margin-bottom:48px}
 .login-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px}
-.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 16px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--surface);font-size:14px;font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;transition:background .15s}
-.google-btn:active{background:var(--bg)}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 16px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--surface);font-size:14px;font-weight:500;color:var(--text);cursor:pointer;font-family:inherit}
 .login-divider{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:12px}
 .login-divider::before,.login-divider::after{content:'';flex:1;height:0.5px;background:var(--border)}
 .skip-btn{padding:11px;border:none;background:transparent;font-size:13px;color:var(--text3);cursor:pointer;font-family:inherit;text-align:center}
-.skip-btn:active{color:var(--text2)}
-.login-note{font-size:11px;color:var(--text3);text-align:center;line-height:1.6;margin-top:4px}
+.login-note{font-size:11px;color:var(--text3);text-align:center;line-height:1.6}
 
 /* ── メインアプリ ── */
 #main-screen{display:none}
@@ -44,24 +38,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .header-left h1{font-size:17px;font-weight:600;letter-spacing:.01em;color:var(--text)}
 .header-left p{font-size:12px;color:var(--text3);margin-top:3px}
-.header-right{display:flex;align-items:center;gap:8px}
 .header-streak{display:flex;align-items:center;gap:5px;background:var(--accent-light);border:0.5px solid var(--accent-mid);border-radius:99px;padding:5px 12px;flex-shrink:0}
 .header-streak-num{font-size:16px;font-weight:700;color:var(--accent);line-height:1}
 .header-streak-label{font-size:11px;color:var(--accent);white-space:nowrap}
-.user-badge{font-size:11px;color:var(--text2);background:var(--surface);border:0.5px solid var(--border2);border-radius:99px;padding:4px 10px;cursor:pointer;white-space:nowrap}
-.user-badge:active{background:var(--bg)}
 .sync-badge{font-size:10px;color:var(--text3);padding:0 16px;margin-bottom:6px;min-height:18px}
-/* nav */
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));background:rgba(250,248,245,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:0.5px solid var(--border);display:flex;align-items:flex-start;z-index:100}
-.nav-btn{flex:1;height:var(--nav-h);border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;color:var(--text3);font-size:10px;font-family:inherit;position:relative;transition:color .2s}
+
+/* ── ボトムナビ ── */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));background:rgba(250,247,243,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:0.5px solid var(--border);display:flex;align-items:flex-start;z-index:100}
+.nav-btn{flex:1;height:var(--nav-h);border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--text3);font-family:inherit;position:relative;transition:color .2s;padding:0}
 .nav-btn.active{color:var(--accent)}
 .nav-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
-.nav-btn.active .nav-icon{transform:scale(1.13)}
-.nav-label{font-size:10px;letter-spacing:.02em;transition:opacity .2s}
-.nav-btn:not(.active) .nav-label{opacity:.55}
-.nav-btn::after{content:'';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .2s}
+.nav-btn.active .nav-icon{transform:scale(1.12)}
+.nav-label{font-size:10px;letter-spacing:.02em;color:var(--text3);transition:color .2s}
+.nav-btn.active .nav-label{color:var(--accent)}
+.nav-btn:not(.active) .nav-label{opacity:.6}
+.nav-btn::after{content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .2s}
 .nav-btn.active::after{opacity:1}
-/* cards */
+
+/* ── 共通カード ── */
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px;margin-bottom:16px}
 .mc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 12px 10px}
 .mc-label{font-size:10px;color:var(--text3);margin-bottom:5px;letter-spacing:.02em}
@@ -89,7 +83,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .fc-lap{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:3px}
 .fc-goal-line{font-size:11px;color:var(--text3);margin-bottom:8px}
 .counter-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:10px}
-.cnt-btn{width:36px;height:36px;border-radius:8px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cnt-btn{width:36px;height:36px;border-radius:8px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text2);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cnt-btn:active{background:var(--accent-light);transform:scale(.93)}
 .cnt-num{font-size:24px;font-weight:700;color:var(--text);flex:1;text-align:center;line-height:1}
 .fc-bar-bg{height:5px;background:var(--accent-light);border-radius:99px;overflow:hidden}
@@ -106,13 +100,76 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .fc-log-time{color:var(--text3);white-space:nowrap;flex-shrink:0}
 .fc-log-badge{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
 .fc-log-badge.plus{background:var(--accent-light);color:var(--accent)}
-.fc-log-badge.minus{background:#f1efe8;color:var(--text3)}
+.fc-log-badge.minus{background:#f1ede8;color:var(--text3)}
 .fc-log-text{color:var(--text2)}
+
+/* ── ヒートマップ ── */
+.hm-outer{padding:0 16px;margin-bottom:16px}
+.hm-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hm-month-title{font-size:14px;font-weight:600;color:var(--text)}
+.hm-streak-badge{display:flex;align-items:center;gap:5px;background:var(--accent-light);border:0.5px solid var(--accent-mid);border-radius:99px;padding:4px 10px}
+.hm-streak-num{font-size:13px;font-weight:700;color:var(--accent)}
+.hm-streak-label{font-size:11px;color:var(--accent)}
+.hm-field-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.hm-field-scroll::-webkit-scrollbar{display:none}
+.hm-fb{padding:5px 14px;border-radius:99px;border:0.5px solid var(--border2);background:var(--surface);font-size:12px;cursor:pointer;color:var(--text2);white-space:nowrap;font-family:inherit}
+.hm-fb.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.hm-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px}
+.hm-dows{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.hm-dow{font-size:9px;color:var(--text3);text-align:center}
+.hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.hm-cell{aspect-ratio:1;border-radius:5px;cursor:pointer;transition:transform .12s}
+.hm-cell:active{transform:scale(.88)}
+.hm-cell.today-cell{outline:2px solid var(--accent);outline-offset:1px}
+.hm-legend{display:flex;align-items:center;gap:4px;margin-top:10px;font-size:10px;color:var(--text3)}
+.hm-lc{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.hm-summary{margin-top:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}
+.hm-sum-val{font-size:19px;font-weight:600;color:var(--text)}
+.hm-sum-label{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* ── 日付モーダル ── */
+.day-modal-bg{position:fixed;inset:0;background:rgba(74,62,54,0.3);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:bgFadeIn .2s ease}
+@keyframes bgFadeIn{from{opacity:0}to{opacity:1}}
+.day-modal{background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-width:480px;animation:slideUp .22s cubic-bezier(.34,1.2,.64,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.day-modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 16px}
+.day-modal-date{font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px}
+.day-modal-total{font-size:13px;color:var(--text2);margin-bottom:16px}
+.day-modal-breakdown{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.day-modal-row{display:flex;align-items:center;justify-content:space-between}
+.day-modal-field{font-size:13px;color:var(--text2)}
+.day-modal-count{font-size:13px;font-weight:600;color:var(--text)}
+.day-modal-bar-bg{height:4px;background:var(--accent-light);border-radius:99px;overflow:hidden;flex:1;margin:0 10px}
+.day-modal-bar-fill{height:100%;border-radius:99px;background:var(--accent)}
+.day-modal-close{width:100%;padding:12px;border:none;background:var(--bg);border-radius:var(--radius-sm);font-size:14px;color:var(--text2);cursor:pointer;font-family:inherit}
+
+/* ── 実績 ── */
+.ach-header{padding:0 16px;margin-bottom:12px}
+.ach-summary{display:flex;align-items:center;gap:8px;margin-top:4px}
+.ach-summary-text{font-size:13px;color:var(--text2)}
+.ach-summary-bar-bg{flex:1;height:6px;background:var(--accent-light);border-radius:99px;overflow:hidden}
+.ach-summary-bar-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .4s}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;margin-bottom:16px}
+.ach-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;flex-direction:column;gap:8px;transition:border-color .2s}
+.ach-card.unlocked{border-color:var(--accent-mid)}
+.ach-card.locked{opacity:.5}
+.ach-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.ach-name{font-size:12px;font-weight:600;color:var(--text)}
+.ach-desc{font-size:10px;color:var(--text3);line-height:1.4}
+.ach-badge{display:inline-block;font-size:9px;padding:2px 7px;border-radius:99px;margin-top:2px}
+.ach-badge.unlocked{background:var(--accent-light);color:var(--accent)}
+.ach-badge.locked{background:var(--bg);color:var(--text3);border:0.5px solid var(--border)}
+
+/* 実績通知 */
+.ach-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);left:50%;transform:translateX(-50%);background:var(--surface);border:0.5px solid var(--accent-mid);border-radius:var(--radius-lg);padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);z-index:300;box-shadow:0 4px 16px rgba(74,62,54,.12);white-space:nowrap;animation:toastIn .3s cubic-bezier(.34,1.2,.64,1)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ── 設定 ── */
 .settings-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
 .sc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
 .sc-head{display:flex;align-items:center;margin-bottom:10px;gap:8px}
 .sc-name-input{flex:1;padding:5px 8px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:14px;font-weight:600;background:var(--bg);color:var(--text);font-family:inherit}
-.sc-del{font-size:12px;color:var(--accent);border:0.5px solid #f0c4b8;border-radius:6px;padding:3px 8px;background:transparent;cursor:pointer;font-family:inherit;white-space:nowrap}
+.sc-del{font-size:12px;color:var(--accent);border:0.5px solid #e8c4b0;border-radius:6px;padding:3px 8px;background:transparent;cursor:pointer;font-family:inherit;white-space:nowrap}
 .sc-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 .sc-field{display:flex;flex-direction:column;gap:4px}
 .sc-fl{font-size:10px;color:var(--text3)}
@@ -122,27 +179,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .add-field-card{background:var(--accent-light);border:0.5px dashed var(--accent-mid);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;display:flex;gap:8px;align-items:center}
 .add-field-card input{flex:1;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit}
 .btn-add{padding:8px 16px;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap}
-.btn-add:active{opacity:.8}
-.hm-wrap{padding:0 16px;margin-bottom:16px}
-.hm-field-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch}
-.hm-field-scroll::-webkit-scrollbar{display:none}
-.hm-fb{padding:5px 14px;border-radius:99px;border:0.5px solid var(--border2);background:var(--surface);font-size:12px;cursor:pointer;color:var(--text2);white-space:nowrap;font-family:inherit}
-.hm-fb.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.hm-month-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px}
-.hm-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px}
-.hm-dows{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
-.hm-dow{font-size:9px;color:var(--text3);text-align:center}
-.hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.hm-cell{aspect-ratio:1;border-radius:4px}
-.hm-cell.today-cell{outline:2px solid var(--accent);outline-offset:1px}
-.hm-legend{display:flex;align-items:center;gap:4px;margin-top:10px;font-size:10px;color:var(--text3)}
-.hm-lc{width:12px;height:12px;border-radius:3px;flex-shrink:0}
-.data-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 10px;display:flex;gap:8px;flex-wrap:wrap}
-.btn-io{flex:1;padding:9px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:12px;cursor:pointer;text-align:center;min-width:100px;font-family:inherit}
-.btn-io:active{background:var(--accent-light)}
 .logout-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;display:flex;align-items:center;justify-content:space-between}
 .logout-user{font-size:13px;color:var(--text2)}
-.logout-btn{padding:7px 14px;border-radius:var(--radius-sm);border:0.5px solid #f0c4b8;background:transparent;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit}
+.logout-btn{padding:7px 14px;border-radius:var(--radius-sm);border:0.5px solid #e8c4b0;background:transparent;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit}
+.data-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 10px;display:flex;gap:8px;flex-wrap:wrap}
+.btn-io{flex:1;padding:9px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg);color:var(--text2);font-size:12px;cursor:pointer;text-align:center;min-width:100px;font-family:inherit}
 .hint-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin:0 16px 16px;font-size:12px;color:var(--text2);line-height:1.7}
 .hint-card b{color:var(--text);font-weight:600}
 .tab-pane{animation:tabFade .18s ease}
@@ -156,11 +197,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
   <div class="login-logo">
     <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
       <rect width="56" height="56" rx="14" fill="#f5ede9"/>
-      <rect x="10.75" y="18.75" width="14.5" height="18.5" rx="4.25" stroke="#c0664a" stroke-width="1.8"/>
-      <line x1="14" y1="28" x2="22" y2="28" stroke="#c0664a" stroke-width="1.8" stroke-linecap="round"/>
-      <rect x="30.75" y="18.75" width="14.5" height="18.5" rx="4.25" stroke="#c0664a" stroke-width="1.8"/>
-      <line x1="34" y1="28" x2="42" y2="28" stroke="#c0664a" stroke-width="1.8" stroke-linecap="round"/>
-      <line x1="38" y1="24" x2="38" y2="32" stroke="#c0664a" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="10.75" y="18.75" width="14.5" height="18.5" rx="4.25" stroke="#c07a5a" stroke-width="1.8"/>
+      <line x1="14" y1="28" x2="22" y2="28" stroke="#c07a5a" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="30.75" y="18.75" width="14.5" height="18.5" rx="4.25" stroke="#c07a5a" stroke-width="1.8"/>
+      <line x1="34" y1="28" x2="42" y2="28" stroke="#c07a5a" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="38" y1="24" x2="38" y2="32" stroke="#c07a5a" stroke-width="1.8" stroke-linecap="round"/>
     </svg>
   </div>
   <div class="login-title">Study Tracker</div>
@@ -185,53 +226,66 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
           <h1>Study Tracker</h1>
           <p id="header-date"></p>
         </div>
-        <div class="header-right">
-          <div class="header-streak">
-            <span class="header-streak-num" id="streak-num">0</span>
-            <span class="header-streak-label">日連続</span>
-          </div>
+        <div class="header-streak">
+          <span class="header-streak-num" id="streak-num">0</span>
+          <span class="header-streak-label">日連続</span>
         </div>
       </div>
     </div>
     <div class="sync-badge" id="sync-status"></div>
     <div id="tab-counter"></div>
     <div id="tab-heatmap" style="display:none"></div>
+    <div id="tab-achievements" style="display:none"></div>
     <div id="tab-settings" style="display:none"></div>
     <nav class="nav">
+      <!-- カウンター -->
       <button class="nav-btn active" onclick="showTab('counter')" id="nav-counter">
         <div class="nav-icon">
-          <svg width="26" height="24" viewBox="0 0 26 24" fill="none">
-            <rect x="0.75" y="4.75" width="10.5" height="14.5" rx="3.25" stroke="currentColor" stroke-width="1.4"/>
-            <line x1="3.5" y1="12" x2="8.5" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <rect x="14.75" y="4.75" width="10.5" height="14.5" rx="3.25" stroke="currentColor" stroke-width="1.4"/>
-            <line x1="17.5" y1="12" x2="22.5" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <line x1="20" y1="9.5" x2="20" y2="14.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <svg width="26" height="22" viewBox="0 0 26 22" fill="none">
+            <rect x="0.7" y="3.7" width="10.6" height="14.6" rx="3.3" stroke="currentColor" stroke-width="1.35"/>
+            <line x1="3.5" y1="11" x2="8.5" y2="11" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+            <rect x="14.7" y="3.7" width="10.6" height="14.6" rx="3.3" stroke="currentColor" stroke-width="1.35"/>
+            <line x1="17.5" y1="11" x2="22.5" y2="11" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+            <line x1="20" y1="8.5" x2="20" y2="13.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
           </svg>
         </div>
         <span class="nav-label">カウンター</span>
       </button>
+      <!-- ヒートマップ -->
       <button class="nav-btn" onclick="showTab('heatmap')" id="nav-heatmap">
         <div class="nav-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="2.75" y="3.75" width="18.5" height="17.5" rx="3.25" stroke="currentColor" stroke-width="1.4"/>
-            <line x1="2.75" y1="8.5" x2="21.25" y2="8.5" stroke="currentColor" stroke-width="1.4"/>
-            <line x1="7.5" y1="2" x2="7.5" y2="5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <line x1="16.5" y1="2" x2="16.5" y2="5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <rect x="5.5" y="11" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".5"/>
-            <rect x="10.75" y="11" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".8"/>
+            <rect x="2.7" y="3.7" width="18.6" height="17.6" rx="3.3" stroke="currentColor" stroke-width="1.35"/>
+            <line x1="2.7" y1="8.5" x2="21.3" y2="8.5" stroke="currentColor" stroke-width="1.35"/>
+            <line x1="7.5" y1="2" x2="7.5" y2="5.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+            <line x1="16.5" y1="2" x2="16.5" y2="5.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+            <rect x="5.5" y="11" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".4"/>
+            <rect x="10.75" y="11" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".75"/>
             <rect x="16" y="11" width="2.5" height="2.5" rx=".6" fill="currentColor"/>
             <rect x="5.5" y="15" width="2.5" height="2.5" rx=".6" fill="currentColor"/>
-            <rect x="10.75" y="15" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".4"/>
-            <rect x="16" y="15" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".7"/>
+            <rect x="10.75" y="15" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".35"/>
+            <rect x="16" y="15" width="2.5" height="2.5" rx=".6" fill="currentColor" opacity=".65"/>
           </svg>
         </div>
         <span class="nav-label">ヒートマップ</span>
       </button>
+      <!-- 実績 -->
+      <button class="nav-btn" onclick="showTab('achievements')" id="nav-achievements">
+        <div class="nav-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2.5l2.09 4.26 4.71.68-3.4 3.32.8 4.68L12 13.27l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+            <line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+            <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="nav-label">実績</span>
+      </button>
+      <!-- 設定 -->
       <button class="nav-btn" onclick="showTab('settings')" id="nav-settings">
         <div class="nav-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.4"/>
-            <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.1 5.1l1.4 1.4M17.5 17.5l1.4 1.4M5.1 18.9l1.4-1.4M17.5 6.5l1.4-1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.35"/>
+            <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.1 5.1l1.4 1.4M17.5 17.5l1.4 1.4M5.1 18.9l1.4-1.4M17.5 6.5l1.4-1.4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
           </svg>
         </div>
         <span class="nav-label">設定</span>
@@ -240,118 +294,107 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
   </div>
 </div>
 
+<!-- 日付詳細モーダル -->
+<div id="day-modal" style="display:none"></div>
+
 <script>
 var SUPABASE_URL='https://jbvvhlahsskxhjttqqng.supabase.co';
 var SUPABASE_KEY='sb_publishable_tKnSMmQ9Lk5kxYvBBGlN3w_AODx0JI5';
 var sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
 var MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 var DOWS=['日','月','火','水','木','金','土'];
-var HM_COLORS=['#f9f7f4','#f5ddd5','#e8957a','#d4684a','#c0664a','#8a3d2e'];
+// ヒートマップ色：0, 1-20, 21-50, 51-100, 101+
+var HM_COLORS=['#ede8e2','#f5d9cc','#e8a082','#c07a5a','#8a4a32'];
 var LS_KEY='shikaku_v4';
-var currentUser=null;
-var hmFieldIdx=0;
-var openCards={};
-var currentTab='counter';
+var currentUser=null;var hmFieldIdx=-1;// -1=全分野
+var openCards={};var currentTab='counter';
 
-function defaultData(){
-  return{goalDate:'',fields:[
-    {name:'法規・法令',total:200,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]},
-    {name:'財務・会計',total:150,dailyGoal:8,prevSolved:0,memo:'',counts:{},logs:[]},
-    {name:'マーケティング',total:180,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]},
-  ]};
-}
-function loadLocal(){
-  try{var d=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(d)return d;}catch(e){}
-  return defaultData();
-}
+// ── 実績定義 ──
+var ACH_ICONS={
+  first:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+  day2:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/></svg>',
+  day5:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><circle cx="7" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="14" r="1" fill="currentColor" stroke="none"/></svg>',
+  day10:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>',
+  day21:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
+  day30:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.09 4.26 4.71.68-3.4 3.32.8 4.68L12 13.27l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>',
+  day60:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.09 4.26 4.71.68-3.4 3.32.8 4.68L12 13.27l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/><path d="M7 20.5 Q12 18 17 20.5"/></svg>',
+  day100:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  q10:     '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  q50:     '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>',
+  q200:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  q500:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+  q1000:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6-6 6 6"/><path d="M6 13l6-6 6 6"/><line x1="12" y1="4" x2="12" y2="21"/></svg>',
+  q2000:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  lap2:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+  heatmap10:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><rect x="6" y="13" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="10" y="13" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="14" y="13" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/></svg>',
+  heatmap20:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><rect x="6" y="12" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="10" y="12" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="14" y="12" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="6" y="16" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="10" y="16" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="14" y="16" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/></svg>',
+  perfect7:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  field50: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 19V6a2 2 0 0 1 2-2h13"/><path d="M8 19h13"/><path d="M8 6v13"/><line x1="12" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="16" y2="14"/></svg>',
+  field100:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6a2 2 0 0 1 2-2h13"/><path d="M8 19h13"/><path d="M8 6v13"/><polyline points="12 10 14 12 18 8"/></svg>',
+};
+var ACHIEVEMENTS=[
+  // はじめの一歩
+  {id:'first',   name:'はじめの一歩',  desc:'初めて記録をつけた',          check:function(d,s){return s.totalSolved>0;}},
+  // 連続日数
+  {id:'day2',    name:'2日連続',       desc:'2日連続で勉強した',            check:function(d,s){return s.streak>=2;}},
+  {id:'day5',    name:'5日連続',       desc:'5日連続で勉強した',            check:function(d,s){return s.streak>=5;}},
+  {id:'day10',   name:'10日連続',      desc:'10日連続で勉強した',           check:function(d,s){return s.streak>=10;}},
+  {id:'day21',   name:'21日連続',      desc:'21日連続で勉強した',           check:function(d,s){return s.streak>=21;}},
+  {id:'day30',   name:'30日連続',      desc:'30日連続で勉強した',           check:function(d,s){return s.streak>=30;}},
+  {id:'day60',   name:'60日連続',      desc:'60日連続で勉強した',           check:function(d,s){return s.streak>=60;}},
+  {id:'day100',  name:'100日連続',     desc:'100日連続で勉強した',          check:function(d,s){return s.streak>=100;}},
+  // 問題数
+  {id:'q10',     name:'10問クリア',    desc:'累計10問以上解いた',           check:function(d,s){return s.totalSolved>=10;}},
+  {id:'q50',     name:'50問クリア',    desc:'累計50問以上解いた',           check:function(d,s){return s.totalSolved>=50;}},
+  {id:'q200',    name:'200問クリア',   desc:'累計200問以上解いた',          check:function(d,s){return s.totalSolved>=200;}},
+  {id:'q500',    name:'500問クリア',   desc:'累計500問以上解いた',          check:function(d,s){return s.totalSolved>=500;}},
+  {id:'q1000',   name:'1000問クリア',  desc:'累計1000問以上解いた',         check:function(d,s){return s.totalSolved>=1000;}},
+  {id:'q2000',   name:'2000問クリア',  desc:'累計2000問以上解いた',         check:function(d,s){return s.totalSolved>=2000;}},
+  // 分野
+  {id:'field50', name:'折り返し地点',  desc:'どれかの分野の進捗が50%以上',  check:function(d,s){return d.fields.some(function(f){return progress(f)>=50;});}},
+  {id:'field100',name:'分野マスター',  desc:'どれかの分野を100%達成',       check:function(d,s){return d.fields.some(function(f){return progress(f)>=100;});}},
+  {id:'lap2',    name:'2周目突入',     desc:'どれかの分野を2周した',        check:function(d,s){return s.maxLap>=2;}},
+  // ヒートマップ
+  {id:'heatmap10',name:'10日記録',     desc:'今月10日以上記録した',         check:function(d,s){return s.thisMonthDays>=10;}},
+  {id:'heatmap20',name:'20日記録',     desc:'今月20日以上記録した',         check:function(d,s){return s.thisMonthDays>=20;}},
+  // 目標達成
+  {id:'perfect7',name:'完璧な1週間',   desc:'7日連続で目標問題数を達成',    check:function(d,s){return s.perfectDays>=7;}},
+];
+
+function defaultData(){return{goalDate:'',fields:[
+  {name:'法規・法令',total:200,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]},
+  {name:'財務・会計',total:150,dailyGoal:8,prevSolved:0,memo:'',counts:{},logs:[]},
+  {name:'マーケティング',total:180,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]},
+],unlockedAchievements:[]};}
+
+function loadLocal(){try{var d=JSON.parse(localStorage.getItem(LS_KEY)||'null');if(d)return d;}catch(e){}return defaultData();}
 function saveLocal(d){try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){}}
 var data=loadLocal();
-data.fields.forEach(function(f){
-  if(f.prevSolved===undefined)f.prevSolved=0;
-  if(f.mastery!==undefined)delete f.mastery;
-  if(!f.logs)f.logs=[];
-});
+data.fields.forEach(function(f){if(f.prevSolved===undefined)f.prevSolved=0;if(f.mastery!==undefined)delete f.mastery;if(!f.logs)f.logs=[];});
+if(!data.unlockedAchievements)data.unlockedAchievements=[];
 
-async function saveToCloud(){
-  if(!currentUser)return;
-  try{
-    await sb.from('study_data').upsert({user_id:currentUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-    showSync('☁ 保存しました');
-  }catch(e){console.error(e);}
-}
-async function loadFromCloud(){
-  if(!currentUser)return false;
-  try{
-    var res=await sb.from('study_data').select('data').eq('user_id',currentUser.id).single();
-    if(res.data&&res.data.data){
-      data=res.data.data;
-      data.fields.forEach(function(f){if(f.prevSolved===undefined)f.prevSolved=0;if(!f.logs)f.logs=[];});
-      saveLocal(data);return true;
-    }
-  }catch(e){}
-  return false;
-}
-async function migrateLocalToCloud(){
-  var local=loadLocal();
-  var hasLocal=local.fields.some(function(f){return Object.keys(f.counts||{}).length>0||f.prevSolved>0;});
-  if(!hasLocal)return;
-  var res=await sb.from('study_data').select('id').eq('user_id',currentUser.id).single();
-  if(res.error||!res.data){data=local;await saveToCloud();showSync('☁ ローカルデータを移行しました');}
-}
-function save(){saveLocal(data);if(currentUser)saveToCloud();}
-function showSync(msg){
-  var el=document.getElementById('sync-status');
-  if(el){el.textContent=msg;setTimeout(function(){el.textContent='';},3000);}
-}
+async function saveToCloud(){if(!currentUser)return;try{await sb.from('study_data').upsert({user_id:currentUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:'user_id'});showSync('☁ 保存しました');}catch(e){}}
+async function loadFromCloud(){if(!currentUser)return false;try{var res=await sb.from('study_data').select('data').eq('user_id',currentUser.id).single();if(res.data&&res.data.data){data=res.data.data;data.fields.forEach(function(f){if(f.prevSolved===undefined)f.prevSolved=0;if(!f.logs)f.logs=[];});if(!data.unlockedAchievements)data.unlockedAchievements=[];saveLocal(data);return true;}}catch(e){}return false;}
+async function migrateLocalToCloud(){var local=loadLocal();var hasLocal=local.fields.some(function(f){return Object.keys(f.counts||{}).length>0||f.prevSolved>0;});if(!hasLocal)return;var res=await sb.from('study_data').select('id').eq('user_id',currentUser.id).single();if(res.error||!res.data){data=local;await saveToCloud();showSync('☁ ローカルデータを移行しました');}}
+function save(){saveLocal(data);if(currentUser)saveToCloud();checkAchievements();}
+function showSync(msg){var el=document.getElementById('sync-status');if(el){el.textContent=msg;setTimeout(function(){el.textContent='';},3000);}}
 
-// 画面切り替え
-function showLoginScreen(){
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('main-screen').style.display='none';
-}
-function showMainScreen(){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('main-screen').style.display='block';
-  renderCounter();
-}
-
-async function loginWithGoogle(){
-  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});
-}
-async function skipLogin(){
-  showMainScreen();
-}
-
+function showLoginScreen(){document.getElementById('login-screen').style.display='flex';document.getElementById('main-screen').style.display='none';}
+function showMainScreen(){document.getElementById('login-screen').style.display='none';document.getElementById('main-screen').style.display='block';renderCounter();}
+async function loginWithGoogle(){await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});}
+function skipLogin(){showMainScreen();}
 async function initAuth(){
   var session=await sb.auth.getSession();
-  if(session.data&&session.data.session){
-    currentUser=session.data.session.user;
-    await migrateLocalToCloud();
-    var loaded=await loadFromCloud();
-    if(loaded)showSync('☁ クラウドから読み込みました');
-    showMainScreen();
-  } else {
-    showLoginScreen();
-  }
+  if(session.data&&session.data.session){currentUser=session.data.session.user;await migrateLocalToCloud();var loaded=await loadFromCloud();if(loaded)showSync('☁ クラウドから読み込みました');showMainScreen();}
+  else{showLoginScreen();}
   sb.auth.onAuthStateChange(async function(event,session){
-    if(event==='SIGNED_IN'&&session){
-      currentUser=session.user;
-      await migrateLocalToCloud();
-      var loaded=await loadFromCloud();
-      if(loaded)showSync('☁ クラウドから読み込みました');
-      showMainScreen();
-    } else if(event==='SIGNED_OUT'){
-      currentUser=null;
-      data=loadLocal();
-      showLoginScreen();
-    }
+    if(event==='SIGNED_IN'&&session){currentUser=session.user;await migrateLocalToCloud();var loaded=await loadFromCloud();if(loaded)showSync('☁ クラウドから読み込みました');showMainScreen();}
+    else if(event==='SIGNED_OUT'){currentUser=null;data=loadLocal();showLoginScreen();}
   });
 }
 
 var nowD=new Date();
-document.getElementById('header-date').textContent=
-  nowD.getFullYear()+'年'+(nowD.getMonth()+1)+'月'+nowD.getDate()+'日（'+DOWS[nowD.getDay()]+'）';
+document.getElementById('header-date').textContent=nowD.getFullYear()+'年'+(nowD.getMonth()+1)+'月'+nowD.getDate()+'日（'+DOWS[nowD.getDay()]+'）';
 
 function todayStr(){return new Date().toISOString().slice(0,10);}
 function totalCounted(f){var s=0;Object.keys(f.counts||{}).forEach(function(k){s+=f.counts[k];});return s;}
@@ -359,29 +402,74 @@ function totalSolved(f){return (f.prevSolved||0)+totalCounted(f);}
 function progress(f){return f.total>0?Math.min(100,Math.round(totalSolved(f)/f.total*100)):0;}
 function lapCount(f){return f.total>0?Math.floor(totalSolved(f)/f.total)+1:1;}
 function todayCount(f){return(f.counts||{})[todayStr()]||0;}
+
 function calcStreak(){
-  var allDates={};
-  data.fields.forEach(function(f){Object.keys(f.counts||{}).forEach(function(k){if(f.counts[k]>0)allDates[k]=true;});});
-  var streak=0;var d=new Date();
-  if(!allDates[todayStr()])d.setDate(d.getDate()-1);
+  var allDates={};data.fields.forEach(function(f){Object.keys(f.counts||{}).forEach(function(k){if(f.counts[k]>0)allDates[k]=true;});});
+  var streak=0;var d=new Date();if(!allDates[todayStr()])d.setDate(d.getDate()-1);
   while(true){var key=d.toISOString().slice(0,10);if(!allDates[key])break;streak++;d.setDate(d.getDate()-1);}
   return streak;
 }
 function updateHeaderStreak(){var el=document.getElementById('streak-num');if(el)el.textContent=calcStreak();}
-function fmtTime(ts){
-  var d=new Date(ts);var h=String(d.getHours()).padStart(2,'0');var m=String(d.getMinutes()).padStart(2,'0');
-  if(d.toDateString()===new Date().toDateString())return h+':'+m;
-  return (d.getMonth()+1)+'/'+d.getDate()+' '+h+':'+m;
+
+function calcStats(){
+  var totalS=data.fields.reduce(function(a,f){return a+totalSolved(f);},0);
+  var streak=calcStreak();
+  var maxLap=data.fields.reduce(function(a,f){return Math.max(a,lapCount(f));},1);
+  var minProg=data.fields.length?data.fields.reduce(function(a,f){return Math.min(a,progress(f));},100):0;
+  var now2=new Date();var yr=now2.getFullYear(),mo=now2.getMonth();
+  var daysInMonth=new Date(yr,mo+1,0).getDate();
+  var thisMonthDays=0;
+  var allDates={};data.fields.forEach(function(f){Object.keys(f.counts||{}).forEach(function(k){if(f.counts[k]>0)allDates[k]=true;});});
+  for(var d=1;d<=daysInMonth;d++){var key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(allDates[key])thisMonthDays++;}
+  // perfectDays: 連続で全分野目標達成した日数
+  var perfectDays=0;var pd=new Date();
+  for(var i=0;i<365;i++){
+    var pkey=pd.toISOString().slice(0,10);
+    var allMet=data.fields.every(function(f){return (f.counts[pkey]||0)>=f.dailyGoal;});
+    if(allMet&&data.fields.length>0){perfectDays++;pd.setDate(pd.getDate()-1);}else break;
+  }
+  return{totalSolved:totalS,streak:streak,maxLap:maxLap,minProgress:minProg,thisMonthDays:thisMonthDays,perfectDays:perfectDays};
 }
+
+function checkAchievements(){
+  var stats=calcStats();
+  var newlyUnlocked=[];
+  ACHIEVEMENTS.forEach(function(ach){
+    if(data.unlockedAchievements.indexOf(ach.id)===-1&&ach.check(data,stats)){
+      data.unlockedAchievements.push(ach.id);
+      newlyUnlocked.push(ach);
+    }
+  });
+  if(newlyUnlocked.length>0){
+    saveLocal(data);
+    newlyUnlocked.forEach(function(ach,i){
+      setTimeout(function(){showAchToast(ach);},i*1800);
+    });
+  }
+}
+
+function showAchToast(ach){
+  var el=document.createElement('div');
+  el.className='ach-toast';
+  el.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <strong>実績達成！</strong>'+ach.name;
+  document.body.appendChild(el);
+  setTimeout(function(){
+    el.style.opacity='0';el.style.transition='opacity .3s';
+    setTimeout(function(){el.remove();},400);
+  },2800);
+}
+
+function fmtTime(ts){var d=new Date(ts);var h=String(d.getHours()).padStart(2,'0');var m=String(d.getMinutes()).padStart(2,'0');if(d.toDateString()===new Date().toDateString())return h+':'+m;return (d.getMonth()+1)+'/'+d.getDate()+' '+h+':'+m;}
 
 function showTab(name){
   openCards={};currentTab=name;
-  ['counter','heatmap','settings'].forEach(function(t){
+  ['counter','heatmap','achievements','settings'].forEach(function(t){
     document.getElementById('tab-'+t).style.display=t===name?'':'none';
     document.getElementById('nav-'+t).classList.toggle('active',t===name);
   });
   if(name==='counter')renderCounter();
   if(name==='heatmap')renderHeatmap();
+  if(name==='achievements')renderAchievements();
   if(name==='settings')renderSettings();
 }
 function toggleCard(i){if(openCards[i])delete openCards[i];else openCards[i]=true;renderCounter();}
@@ -398,20 +486,11 @@ function renderCounter(){
     +'<div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">'+solvedQ+'</div><div class="mc-sub">全'+totalQ+'問</div></div></div>';
   var goalContent='<div style="font-size:12px;color:var(--text3)">目標日を設定すると逆算できます</div>';
   if(data.goalDate){
-    var n=new Date();n.setHours(0,0,0,0);
-    var g=new Date(data.goalDate);g.setHours(0,0,0,0);
-    var days=Math.max(0,Math.round((g-n)/864e5));
-    var rem=Math.max(0,totalQ-solvedQ);
-    var per=days>0?Math.ceil(rem/days):'—';
-    goalContent='<div class="goal-stats">'
-      +'<div class="gs-item"><div class="gs-val">'+days+'日</div><div class="gs-label">残り日数</div></div>'
-      +'<div class="gs-item"><div class="gs-val">'+rem+'問</div><div class="gs-label">残り問題</div></div>'
-      +'<div class="gs-item"><div class="gs-val">'+per+'問</div><div class="gs-label">1日の必要数</div></div>'
-      +'</div>';
+    var n=new Date();n.setHours(0,0,0,0);var g=new Date(data.goalDate);g.setHours(0,0,0,0);
+    var days=Math.max(0,Math.round((g-n)/864e5));var rem=Math.max(0,totalQ-solvedQ);var per=days>0?Math.ceil(rem/days):'—';
+    goalContent='<div class="goal-stats"><div class="gs-item"><div class="gs-val">'+days+'日</div><div class="gs-label">残り日数</div></div><div class="gs-item"><div class="gs-val">'+rem+'問</div><div class="gs-label">残り問題</div></div><div class="gs-item"><div class="gs-val">'+per+'問</div><div class="gs-label">1日の必要数</div></div></div>';
   }
-  html+='<div class="goal-card"><div class="goal-row"><span class="goal-label">一周目標日</span>'
-    +'<input class="goal-input" type="date" value="'+(data.goalDate||'')+'" onchange="data.goalDate=this.value;save();renderCounter()">'
-    +'</div>'+goalContent+'</div>';
+  html+='<div class="goal-card"><div class="goal-row"><span class="goal-label">一周目標日</span><input class="goal-input" type="date" value="'+(data.goalDate||'')+'" onchange="data.goalDate=this.value;save();renderCounter()"></div>'+goalContent+'</div>';
   html+='<div class="sec-label">分野別カウンター</div><div class="fields-grid">';
   data.fields.forEach(function(f,i){
     var c=todayCount(f);var p=progress(f);var lap=lapCount(f);var isOpen=!!openCards[i];
@@ -419,22 +498,13 @@ function renderCounter(){
     var logHtml='';
     if(recent.length>0){
       logHtml+='<div class="fc-log-title">直近の操作ログ</div><div class="fc-log-list">';
-      recent.forEach(function(log){
-        var isPlus=log.delta>0;
-        logHtml+='<div class="fc-log-item"><span class="fc-log-time">'+fmtTime(log.ts)+'</span>'
-          +'<span class="fc-log-badge '+(isPlus?'plus':'minus')+'">'+(isPlus?'+':'−')+'</span>'
-          +'<span class="fc-log-text">'+Math.abs(log.delta)+'問 → 計'+log.total+'問</span></div>';
-      });
+      recent.forEach(function(log){var isPlus=log.delta>0;logHtml+='<div class="fc-log-item"><span class="fc-log-time">'+fmtTime(log.ts)+'</span><span class="fc-log-badge '+(isPlus?'plus':'minus')+'">'+(isPlus?'+':'−')+'</span><span class="fc-log-text">'+Math.abs(log.delta)+'問 → 計'+log.total+'問</span></div>';});
       logHtml+='</div>';
     }else{logHtml+='<div class="fc-log-title">ログはまだありません</div>';}
     html+='<div class="fc" onclick="toggleCard('+i+')">'
       +'<div class="fc-header"><span class="fc-name">'+f.name+'</span><span class="fc-arrow'+(isOpen?' open':'')+'">▾</span></div>'
       +'<div class="fc-lap">'+lap+'周目</div><div class="fc-goal-line">目標 '+f.dailyGoal+'問／日</div>'
-      +'<div class="counter-row" onclick="event.stopPropagation()">'
-      +'<button class="cnt-btn" onclick="increment('+i+',-1)">−</button>'
-      +'<span class="cnt-num">'+c+'</span>'
-      +'<button class="cnt-btn" onclick="increment('+i+',1)">＋</button>'
-      +'</div>'
+      +'<div class="counter-row" onclick="event.stopPropagation()"><button class="cnt-btn" onclick="increment('+i+',-1)">−</button><span class="cnt-num">'+c+'</span><button class="cnt-btn" onclick="increment('+i+',1)">＋</button></div>'
       +'<div class="fc-bar-bg"><div class="fc-bar-fill" style="width:'+p+'%"></div></div>'
       +'<div class="fc-detail'+(isOpen?' open':'')+'">'
       +'<div class="fc-detail-row"><span class="fc-detail-label">進捗率</span><span class="fc-detail-val">'+p+'%</span></div>'
@@ -446,112 +516,162 @@ function renderCounter(){
   html+='</div></div>';
   document.getElementById('tab-counter').innerHTML=html;
 }
+
 function increment(i,delta){
-  var t=todayStr();
-  if(!data.fields[i].counts)data.fields[i].counts={};
+  var t=todayStr();if(!data.fields[i].counts)data.fields[i].counts={};
   data.fields[i].counts[t]=Math.max(0,(data.fields[i].counts[t]||0)+delta);
   if(!data.fields[i].logs)data.fields[i].logs=[];
   data.fields[i].logs.push({ts:Date.now(),delta:delta,total:totalCounted(data.fields[i])});
   if(data.fields[i].logs.length>30)data.fields[i].logs=data.fields[i].logs.slice(-30);
   save();renderCounter();
 }
-function hmColor(ratio){
-  if(ratio<=0)return HM_COLORS[0];
-  return HM_COLORS[Math.min(HM_COLORS.length-1,Math.ceil(ratio*(HM_COLORS.length-1)))];
+
+// ── ヒートマップ ──
+function hmColorForCount(cnt){
+  if(cnt===0)return HM_COLORS[0];
+  if(cnt<=20)return HM_COLORS[1];
+  if(cnt<=50)return HM_COLORS[2];
+  if(cnt<=100)return HM_COLORS[3];
+  return HM_COLORS[4];
 }
+
 function renderHeatmap(){
-  if(!data.fields.length){document.getElementById('tab-heatmap').innerHTML='<div class="tab-pane" style="padding:32px 16px;text-align:center;font-size:13px;color:var(--text3)">設定タブで分野を追加してください</div>';return;}
-  if(hmFieldIdx>=data.fields.length)hmFieldIdx=0;
   var now2=new Date();var yr=now2.getFullYear(),mo=now2.getMonth();
   var todayKey=todayStr();var daysInMonth=new Date(yr,mo+1,0).getDate();var firstDow=new Date(yr,mo,1).getDay();
-  var f=data.fields[hmFieldIdx];var counts=f.counts||{};
-  var html='<div class="tab-pane"><div class="hm-wrap"><div class="hm-field-scroll">';
+  var streak=calcStreak();
+
+  // 全分野合計カウントを日付ごとに集計
+  function getDayCounts(fieldIdx){
+    var counts={};
+    if(fieldIdx===-1){
+      data.fields.forEach(function(f){Object.keys(f.counts||{}).forEach(function(k){counts[k]=(counts[k]||0)+(f.counts[k]||0);});});
+    }else if(data.fields[fieldIdx]){
+      counts=data.fields[fieldIdx].counts||{};
+    }
+    return counts;
+  }
+
+  var counts=getDayCounts(hmFieldIdx);
+
+  var html='<div class="tab-pane"><div class="hm-outer">';
+  html+='<div class="hm-top"><div class="hm-month-title">'+yr+'年 '+MONTHS[mo]+'</div>';
+  html+='<div class="hm-streak-badge"><span class="hm-streak-num">'+streak+'日</span><span class="hm-streak-label">連続！</span></div></div>';
+
+  // 分野セレクター（全分野＋各分野）
+  html+='<div class="hm-field-scroll">';
+  html+='<button class="hm-fb'+(hmFieldIdx===-1?' active':'')+'" onclick="hmFieldIdx=-1;renderHeatmap()">全分野</button>';
   data.fields.forEach(function(fd,i){html+='<button class="hm-fb'+(i===hmFieldIdx?' active':'')+'" onclick="hmFieldIdx='+i+';renderHeatmap()">'+fd.name+'</button>';});
-  html+='</div><div class="hm-month-title">'+yr+'年 '+MONTHS[mo]+'</div><div class="hm-card">';
-  html+='<div class="hm-dows">'+DOWS.map(function(d){return '<div class="hm-dow">'+d+'</div>';}).join('')+'</div><div class="hm-grid">';
+  html+='</div>';
+
+  html+='<div class="hm-card"><div class="hm-dows">'+DOWS.map(function(d){return '<div class="hm-dow">'+d+'</div>';}).join('')+'</div>';
+  html+='<div class="hm-grid">';
   for(var e=0;e<firstDow;e++)html+='<div></div>';
   for(var d=1;d<=daysInMonth;d++){
     var key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    var cnt=counts[key]||0;var ratio=f.dailyGoal>0?Math.min(1,cnt/f.dailyGoal):0;
+    var cnt=counts[key]||0;
     var isFuture=new Date(key+' 00:00:00')>now2;
-    html+='<div class="hm-cell'+(key===todayKey?' today-cell':'')+'" style="background:'+hmColor(ratio)+';opacity:'+(isFuture?'0.3':'1')+'"></div>';
+    var isToday=key===todayKey;
+    var col=isFuture?HM_COLORS[0]:hmColorForCount(cnt);
+    var op=isFuture?'0.3':'1';
+    html+='<div class="hm-cell'+(isToday?' today-cell':'')+'" style="background:'+col+';opacity:'+op+'" onclick="openDayModal(\''+key+'\')" data-date="'+key+'"></div>';
   }
-  html+='</div><div class="hm-legend"><span>0問</span>';
+  html+='</div>';
+  html+='<div class="hm-legend"><span>少</span>';
   HM_COLORS.forEach(function(c){html+='<div class="hm-lc" style="background:'+c+'"></div>';});
-  html+='<span>目標達成</span></div></div>';
+  html+='<span>多</span></div></div>';
+
+  // 月間サマリー
   var monthTotal=0;
-  for(var d2=1;d2<=daysInMonth;d2++){monthTotal+=(counts[yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0')]||0);}
-  var monthTarget=f.dailyGoal*daysInMonth;var monthPct=monthTarget>0?Math.round(monthTotal/monthTarget*100):0;
-  html+='<div style="margin-top:12px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
-    +'<div><div style="font-size:19px;font-weight:600;color:var(--text)">'+monthTotal+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の解答数</div></div>'
-    +'<div><div style="font-size:19px;font-weight:600;color:var(--text)">'+monthTarget+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">今月の目標数</div></div>'
-    +'<div><div style="font-size:19px;font-weight:600;color:var(--accent)">'+monthPct+'%</div><div style="font-size:10px;color:var(--text3);margin-top:2px">達成率</div></div>'
-    +'</div></div></div>';
+  for(var d2=1;d2<=daysInMonth;d2++){var k2=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');monthTotal+=(counts[k2]||0);}
+  var activeDays=0;
+  for(var d3=1;d3<=daysInMonth;d3++){var k3=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d3).padStart(2,'0');if((counts[k3]||0)>0)activeDays++;}
+  html+='<div class="hm-summary"><div><div class="hm-sum-val">'+monthTotal+'</div><div class="hm-sum-label">今月の解答数</div></div><div><div class="hm-sum-val">'+activeDays+'</div><div class="hm-sum-label">記録した日数</div></div><div><div class="hm-sum-val">'+streak+'</div><div class="hm-sum-label">連続日数</div></div></div>';
+  html+='</div></div>';
   document.getElementById('tab-heatmap').innerHTML=html;
 }
+
+function openDayModal(dateKey){
+  var parts=dateKey.split('-');
+  var yr=parseInt(parts[0]),mo=parseInt(parts[1]),dy=parseInt(parts[2]);
+  var dateLabel=yr+'年'+mo+'月'+dy+'日（'+DOWS[new Date(dateKey).getDay()]+'）';
+  var totalCnt=0;
+  var breakdown=data.fields.map(function(f){var c=(f.counts[dateKey]||0);totalCnt+=c;return{name:f.name,count:c};});
+  var maxCount=Math.max.apply(null,breakdown.map(function(b){return b.count;}));
+  var html='<div class="day-modal-bg" onclick="closeDayModal()">'
+    +'<div class="day-modal" onclick="event.stopPropagation()">'
+    +'<div class="day-modal-handle"></div>'
+    +'<div class="day-modal-date">'+dateLabel+'</div>'
+    +'<div class="day-modal-total">合計 '+totalCnt+'問</div>'
+    +'<div class="day-modal-breakdown">';
+  breakdown.forEach(function(b){
+    var pct=maxCount>0?Math.round(b.count/maxCount*100):0;
+    html+='<div class="day-modal-row"><span class="day-modal-field">'+b.name+'</span>'
+      +'<div class="day-modal-bar-bg"><div class="day-modal-bar-fill" style="width:'+pct+'%"></div></div>'
+      +'<span class="day-modal-count">'+b.count+'問</span></div>';
+  });
+  html+='</div><button class="day-modal-close" onclick="closeDayModal()">閉じる</button></div></div>';
+  var el=document.getElementById('day-modal');
+  el.innerHTML=html;el.style.display='block';
+}
+function closeDayModal(){var el=document.getElementById('day-modal');el.style.display='none';el.innerHTML='';}
+
+// ── 実績 ──
+function renderAchievements(){
+  var stats=calcStats();
+  var unlocked=data.unlockedAchievements||[];
+  var unlockedCount=0;
+  ACHIEVEMENTS.forEach(function(a){if(unlocked.indexOf(a.id)!==-1)unlockedCount++;});
+  var pct=Math.round(unlockedCount/ACHIEVEMENTS.length*100);
+
+  var html='<div class="tab-pane">';
+  html+='<div class="ach-header"><div class="sec-label" style="padding:0;margin-bottom:6px">実績</div>'
+    +'<div class="ach-summary"><span class="ach-summary-text">'+unlockedCount+' / '+ACHIEVEMENTS.length+'</span>'
+    +'<div class="ach-summary-bar-bg"><div class="ach-summary-bar-fill" style="width:'+pct+'%"></div></div>'
+    +'<span class="ach-summary-text">'+pct+'%</span></div></div>';
+
+  html+='<div class="ach-grid">';
+  ACHIEVEMENTS.forEach(function(ach){
+    var isUnlocked=unlocked.indexOf(ach.id)!==-1;
+    var iconColor=isUnlocked?'var(--accent)':'var(--text3)';
+    html+='<div class="ach-card '+(isUnlocked?'unlocked':'locked')+'">'
+      +'<div class="ach-icon" style="color:'+iconColor+'">'+ACH_ICONS[ach.id]+'</div>'
+      +'<div class="ach-name">'+ach.name+'</div>'
+      +'<div class="ach-desc">'+ach.desc+'</div>'
+      +'<span class="ach-badge '+(isUnlocked?'unlocked':'locked')+'">'+(isUnlocked?'達成':'未達成')+'</span>'
+      +'</div>';
+  });
+  html+='</div></div>';
+  document.getElementById('tab-achievements').innerHTML=html;
+}
+
+// ── 設定 ──
 function renderSettings(){
   var html='<div class="tab-pane">';
-  if(currentUser){
-    var name=currentUser.user_metadata&&currentUser.user_metadata.name?currentUser.user_metadata.name:'ログイン中';
-    html+='<div class="logout-card"><span class="logout-user">☁ '+name+'</span>'
-      +'<button class="logout-btn" onclick="doLogout()">ログアウト</button></div>';
-  }
+  if(currentUser){var name=currentUser.user_metadata&&currentUser.user_metadata.name?currentUser.user_metadata.name:'ログイン中';html+='<div class="logout-card"><span class="logout-user">☁ '+name+'</span><button class="logout-btn" onclick="doLogout()">ログアウト</button></div>';}
   html+='<div class="sec-label">分野の設定</div><div class="settings-list">';
   data.fields.forEach(function(f,i){
     var p=progress(f);var lap=lapCount(f);
-    html+='<div class="sc"><div class="sc-head">'
-      +'<input class="sc-name-input" type="text" value="'+f.name+'" onchange="updF('+i+',\'name\',this.value)" placeholder="分野名">'
-      +'<button class="sc-del" onclick="removeField('+i+')">削除</button></div>'
-      +'<div class="sc-fields">'
-      +'<div class="sc-field"><span class="sc-fl">全体問題数</span><input class="sc-input" type="number" min="0" value="'+f.total+'" onchange="updF('+i+',\'total\',this.value)"></div>'
+    html+='<div class="sc"><div class="sc-head"><input class="sc-name-input" type="text" value="'+f.name+'" onchange="updF('+i+',\'name\',this.value)" placeholder="分野名"><button class="sc-del" onclick="removeField('+i+')">削除</button></div>'
+      +'<div class="sc-fields"><div class="sc-field"><span class="sc-fl">全体問題数</span><input class="sc-input" type="number" min="0" value="'+f.total+'" onchange="updF('+i+',\'total\',this.value)"></div>'
       +'<div class="sc-field"><span class="sc-fl">1日目標</span><input class="sc-input" type="number" min="0" value="'+f.dailyGoal+'" onchange="updF('+i+',\'dailyGoal\',this.value)"></div>'
-      +'<div class="sc-field"><span class="sc-fl">既存の解答数</span><input class="sc-input" type="number" min="0" value="'+(f.prevSolved||0)+'" onchange="updF('+i+',\'prevSolved\',this.value)"></div>'
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
-      +'<div class="sc-field"><span class="sc-fl">進捗率（自動）</span><div class="sc-mastery">'+p+'%</div></div>'
-      +'<div class="sc-field"><span class="sc-fl">周回数（自動）</span><div class="sc-mastery">'+lap+'周目</div></div>'
-      +'</div>'
-      +'<textarea class="sc-textarea" placeholder="メモ..." onchange="updF('+i+',\'memo\',this.value)">'+(f.memo||'')+'</textarea>'
-      +'</div>';
+      +'<div class="sc-field"><span class="sc-fl">既存の解答数</span><input class="sc-input" type="number" min="0" value="'+(f.prevSolved||0)+'" onchange="updF('+i+',\'prevSolved\',this.value)"></div></div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><div class="sc-field"><span class="sc-fl">進捗率（自動）</span><div class="sc-mastery">'+p+'%</div></div><div class="sc-field"><span class="sc-fl">周回数（自動）</span><div class="sc-mastery">'+lap+'周目</div></div></div>'
+      +'<textarea class="sc-textarea" placeholder="メモ..." onchange="updF('+i+',\'memo\',this.value)">'+(f.memo||'')+'</textarea></div>';
   });
-  html+='</div><div class="add-field-card"><input type="text" id="new-name" placeholder="新しい分野名...">'
-    +'<button class="btn-add" onclick="addField()">追加</button></div>';
-  html+='<div class="sec-label">データ管理</div>'
-    +'<div class="data-card"><button class="btn-io" onclick="exportData()">書き出す（JSON）</button>'
-    +'<label class="btn-io" style="cursor:pointer">読み込む（JSON）<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label></div>';
+  html+='</div><div class="add-field-card"><input type="text" id="new-name" placeholder="新しい分野名..."><button class="btn-add" onclick="addField()">追加</button></div>';
+  html+='<div class="sec-label">データ管理</div><div class="data-card"><button class="btn-io" onclick="exportData()">書き出す（JSON）</button><label class="btn-io" style="cursor:pointer">読み込む（JSON）<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label></div>';
   html+='<div class="hint-card"><b>iPhoneでホーム画面に追加する方法</b><br>Safari でこのページを開く → 下部の共有ボタン（□↑）→「ホーム画面に追加」→「追加」</div>';
   html+='</div>';
   document.getElementById('tab-settings').innerHTML=html;
 }
+
 function doLogout(){if(confirm('ログアウトしますか？'))sb.auth.signOut();}
-function updF(i,key,val){
-  if(key==='total'||key==='dailyGoal'||key==='prevSolved')val=parseInt(val)||0;
-  data.fields[i][key]=val;save();if(key==='name')renderCounter();
-}
-function removeField(i){
-  if(!confirm('「'+data.fields[i].name+'」を削除しますか？'))return;
-  data.fields.splice(i,1);delete openCards[i];
-  if(hmFieldIdx>=data.fields.length)hmFieldIdx=Math.max(0,data.fields.length-1);
-  save();renderSettings();
-}
-function addField(){
-  var inp=document.getElementById('new-name');var name=inp.value.trim();if(!name)return;
-  data.fields.push({name:name,total:100,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]});
-  inp.value='';save();renderSettings();
-}
-function exportData(){
-  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='study_tracker_data.json';a.click();
-}
-function importData(e){
-  var file=e.target.files[0];if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    try{data=JSON.parse(ev.target.result);save();renderSettings();alert('読み込みました！');}
-    catch(err){alert('ファイルが読み込めませんでした');}
-  };
-  reader.readAsText(file);
-}
+function updF(i,key,val){if(key==='total'||key==='dailyGoal'||key==='prevSolved')val=parseInt(val)||0;data.fields[i][key]=val;save();if(key==='name')renderCounter();}
+function removeField(i){if(!confirm('「'+data.fields[i].name+'」を削除しますか？'))return;data.fields.splice(i,1);delete openCards[i];save();renderSettings();}
+function addField(){var inp=document.getElementById('new-name');var name=inp.value.trim();if(!name)return;data.fields.push({name:name,total:100,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]});inp.value='';save();renderSettings();}
+function exportData(){var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='study_tracker_data.json';a.click();}
+function importData(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){try{data=JSON.parse(ev.target.result);save();renderSettings();alert('読み込みました！');}catch(err){alert('ファイルが読み込めませんでした');}};reader.readAsText(file);}
+
 initAuth();
 </script>
 </body>
