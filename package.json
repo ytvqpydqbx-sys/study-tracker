@@ -2,13 +2,10 @@
   "name": "study-tracker",
   "version": "1.0.0",
   "description": "Study Tracker PWA",
-  "main": "api/auth.js",
   "scripts": {
-    "dev": "vercel dev",
     "start": "node api/auth.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.0.0",
-    "cookie": "^0.6.0"
+    "@supabase/supabase-js": "^2.0.0"
   }
 }
