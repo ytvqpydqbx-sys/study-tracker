@@ -303,7 +303,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 <script>
 var SUPABASE_URL='https://jbvvhlahsskxhjttqqng.supabase.co';
 var SUPABASE_KEY='sb_publishable_tKnSMmQ9Lk5kxYvBBGlN3w_AODx0JI5';
-var sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// Supabaseクライアント（PKCEフロー）
+var sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  auth:{
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:true,
+  }
+});
+
+// VercelのAPIでHttpOnly Cookieにセッション保存
+async function saveSessionToServer(session){
+  try{
+    await fetch('/api/auth?action=set-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        access_token:session.access_token,
+        refresh_token:session.refresh_token,
+        expires_at:session.expires_at,
+      }),
+      credentials:'include',
+    });
+  }catch(e){console.error('session save error',e);}
+}
+
+// サーバーのHttpOnly Cookieからユーザー情報を取得
+async function getUserFromServer(){
+  try{
+    var res=await fetch('/api/auth?action=session',{credentials:'include'});
+    if(!res.ok)return null;
+    var json=await res.json();
+    return json.user||null;
+  }catch(e){return null;}
+}
+
+// サーバー側のCookieを削除してログアウト
+async function logoutFromServer(){
+  try{
+    await fetch('/api/auth?action=logout',{method:'POST',credentials:'include'});
+  }catch(e){}
+}
 var MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 var DOWS=['日','月','火','水','木','金','土'];
 // ヒートマップ色：0, 1-20, 21-50, 51-100, 101+
@@ -384,15 +425,65 @@ function showSync(msg){var el=document.getElementById('sync-status');if(el){el.t
 
 function showLoginScreen(){document.getElementById('login-screen').style.display='flex';document.getElementById('main-screen').style.display='none';}
 function showMainScreen(){document.getElementById('login-screen').style.display='none';document.getElementById('main-screen').style.display='block';renderCounter();}
-async function loginWithGoogle(){await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});}
+
+async function loginWithGoogle(){
+  await sb.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:'https://study-tracker-five-mu.vercel.app/'}
+  });
+}
+
 function skipLogin(){showMainScreen();}
+
 async function initAuth(){
-  var session=await sb.auth.getSession();
-  if(session.data&&session.data.session){currentUser=session.data.session.user;await migrateLocalToCloud();var loaded=await loadFromCloud();if(loaded)showSync('☁ クラウドから読み込みました');showMainScreen();}
-  else{showLoginScreen();}
+  // 1. まずSupabase標準のlocalStorageからセッション復元を試みる
+  var sessionRes=await sb.auth.getSession();
+  var session=sessionRes.data&&sessionRes.data.session?sessionRes.data.session:null;
+
+  if(session){
+    // localStorageにセッションあり → サーバーのCookieにも保存
+    currentUser=session.user;
+    await saveSessionToServer(session);
+    await migrateLocalToCloud();
+    var loaded=await loadFromCloud();
+    if(loaded)showSync('☁ クラウドから読み込みました');
+    showMainScreen();
+    return;
+  }
+
+  // 2. localStorageになければサーバーのHttpOnly Cookieを確認（PWA対応）
+  var serverUser=await getUserFromServer();
+  if(serverUser){
+    currentUser=serverUser;
+    await migrateLocalToCloud();
+    var loaded2=await loadFromCloud();
+    if(loaded2)showSync('☁ クラウドから読み込みました');
+    showMainScreen();
+    return;
+  }
+
+  // 3. どちらもなければログイン画面
+  showLoginScreen();
+
+  // 認証状態の変化を監視
   sb.auth.onAuthStateChange(async function(event,session){
-    if(event==='SIGNED_IN'&&session){currentUser=session.user;await migrateLocalToCloud();var loaded=await loadFromCloud();if(loaded)showSync('☁ クラウドから読み込みました');showMainScreen();}
-    else if(event==='SIGNED_OUT'){currentUser=null;data=loadLocal();showLoginScreen();}
+    if(event==='SIGNED_IN'&&session){
+      currentUser=session.user;
+      // HttpOnly CookieにセッションをセットしてPWAでも維持
+      await saveSessionToServer(session);
+      await migrateLocalToCloud();
+      var loaded=await loadFromCloud();
+      if(loaded)showSync('☁ クラウドから読み込みました');
+      showMainScreen();
+    }else if(event==='SIGNED_OUT'){
+      currentUser=null;
+      await logoutFromServer();
+      data=loadLocal();
+      showLoginScreen();
+    }else if(event==='TOKEN_REFRESHED'&&session){
+      currentUser=session.user;
+      await saveSessionToServer(session);
+    }
   });
 }
 
@@ -668,7 +759,12 @@ function renderSettings(){
   document.getElementById('tab-settings').innerHTML=html;
 }
 
-function doLogout(){if(confirm('ログアウトしますか？'))sb.auth.signOut();}
+function doLogout(){
+  if(confirm('ログアウトしますか？')){
+    logoutFromServer();
+    sb.auth.signOut();
+  }
+}
 function updF(i,key,val){if(key==='total'||key==='dailyGoal'||key==='prevSolved')val=parseInt(val)||0;data.fields[i][key]=val;save();if(key==='name')renderCounter();}
 function removeField(i){if(!confirm('「'+data.fields[i].name+'」を削除しますか？'))return;data.fields.splice(i,1);delete openCards[i];save();renderSettings();}
 function addField(){var inp=document.getElementById('new-name');var name=inp.value.trim();if(!name)return;data.fields.push({name:name,total:100,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]});inp.value='';save();renderSettings();}
