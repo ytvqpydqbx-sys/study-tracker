@@ -16,7 +16,7 @@
   --bg:#faf7f3;--surface:#ffffff;--border:#e8e1da;--border2:#ddd6ce;
   --text:#4a3e36;--text2:#7b6a60;--text3:#a69a90;
   --accent:#c07a5a;--accent-light:#f5ede9;--accent-mid:#d4957a;
-  --nav-h:64px;--radius:10px;--radius-sm:7px;--radius-lg:14px;
+  --nav-h:72px;--radius:10px;--radius-sm:7px;--radius-lg:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg)}
@@ -48,7 +48,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 
 /* ── ボトムナビ ── */
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));background:rgba(250,247,243,0.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:0.5px solid var(--border);display:flex;align-items:flex-start;z-index:100}
-.nav-btn{flex:1;height:var(--nav-h);border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--text3);font-family:inherit;position:relative;transition:color .2s;padding:0}
+.nav-btn{flex:1;height:var(--nav-h);border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--text3);font-family:inherit;position:relative;transition:color .2s;padding:10px 0;}
 .nav-btn.active{color:var(--accent)}
 .nav-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
 .nav-btn.active .nav-icon{transform:scale(1.12)}
@@ -574,17 +574,52 @@ function renderCounter(){
   var solvedQ=data.fields.reduce(function(a,f){return a+totalSolved(f);},0);
   var todayQ=data.fields.reduce(function(a,f){return a+todayCount(f);},0);
   var avgP=data.fields.length?Math.round(data.fields.reduce(function(a,f){return a+progress(f);},0)/data.fields.length):0;
+
   var html='<div class="tab-pane">';
-  html+='<div class="today-big"><div class="today-big-num">'+todayQ+'</div><div class="today-big-label">今日の解答数</div></div>';
-  html+='<div class="metrics"><div class="mc"><div class="mc-label">平均進捗率</div><div class="mc-value">'+avgP+'%</div></div>'
-    +'<div class="mc"><div class="mc-label">累計解答</div><div class="mc-value">'+solvedQ+'</div><div class="mc-sub">全'+totalQ+'問</div></div></div>';
-  var goalContent='<div style="font-size:12px;color:var(--text3)">目標日を設定すると逆算できます</div>';
+
+  // ── 主役：今日の解答数 ──
+  html+='<div style="margin:4px 16px 12px;padding:40px 24px 36px;text-align:center;">'
+    +'<div style="font-size:11px;letter-spacing:.14em;color:var(--text3);margin-bottom:14px;text-transform:uppercase;">今日の解答数</div>'
+    +'<div style="font-size:96px;font-weight:700;color:var(--accent);line-height:.9;letter-spacing:-.03em;">'+todayQ+'</div>'
+    +'</div>';
+
+  // ── 締切カード（残り日数を主役に）──
   if(data.goalDate){
-    var n=new Date();n.setHours(0,0,0,0);var g=new Date(data.goalDate);g.setHours(0,0,0,0);
-    var days=Math.max(0,Math.round((g-n)/864e5));var rem=Math.max(0,totalQ-solvedQ);var per=days>0?Math.ceil(rem/days):'—';
-    goalContent='<div class="goal-stats"><div class="gs-item"><div class="gs-val">'+days+'日</div><div class="gs-label">残り日数</div></div><div class="gs-item"><div class="gs-val">'+rem+'問</div><div class="gs-label">残り問題</div></div><div class="gs-item"><div class="gs-val">'+per+'問</div><div class="gs-label">1日の必要数</div></div></div>';
+    var n=new Date();n.setHours(0,0,0,0);
+    var g=new Date(data.goalDate);g.setHours(0,0,0,0);
+    var days=Math.max(0,Math.round((g-n)/864e5));
+    var rem=Math.max(0,totalQ-solvedQ);
+    var gm=g.getMonth()+1,gd=g.getDate();
+    html+='<div style="margin:0 16px 10px;background:var(--surface);border:0.5px solid var(--border);border-radius:18px;padding:22px 20px;">'
+      +'<div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin-bottom:14px;">'
+      +'<span style="font-size:13px;color:var(--text3);">残り</span>'
+      +'<span style="font-size:48px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-.02em;">'+days+'</span>'
+      +'<span style="font-size:15px;color:var(--text2);font-weight:500;">日</span>'
+      +'</div>'
+      +'<div style="display:flex;align-items:center;justify-content:center;gap:16px;">'
+      +'<span style="font-size:12px;color:var(--text2);">残り '+rem+'問</span>'
+      +'<span style="width:3px;height:3px;border-radius:50%;background:var(--border2);"></span>'
+      +'<span style="font-size:12px;color:var(--text2);">目標 '+gm+'/'+gd+'</span>'
+      +'</div>'
+      +'</div>';
+  }else{
+    html+='<div style="margin:0 16px 10px;background:var(--surface);border:0.5px solid var(--border);border-radius:18px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;">'
+      +'<span style="font-size:13px;color:var(--text3);">目標日を設定</span>'
+      +'<input class="goal-input" type="date" value="" onchange="data.goalDate=this.value;save();renderCounter()" style="font-size:13px;">'
+      +'</div>';
   }
-  html+='<div class="goal-card"><div class="goal-row"><span class="goal-label">一周目標日</span><input class="goal-input" type="date" value="'+(data.goalDate||'')+'" onchange="data.goalDate=this.value;save();renderCounter()"></div>'+goalContent+'</div>';
+  if(data.goalDate){
+    html+='<div style="text-align:center;margin:0 16px 18px;"><input type="date" value="'+data.goalDate+'" onchange="data.goalDate=this.value;save();renderCounter()" style="font-size:11px;color:var(--text3);border:none;background:transparent;"></div>';
+  }
+
+  // ── 補助：進捗率＋累計を1枚に統合 ──
+  html+='<div style="margin:0 16px 22px;background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">'
+    +'<div style="flex:1;"><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">平均進捗率</div><div style="font-size:20px;font-weight:600;color:var(--text2);">'+avgP+'<span style="font-size:12px;font-weight:400;">%</span></div></div>'
+    +'<div style="width:0.5px;height:32px;background:var(--border);"></div>'
+    +'<div style="flex:1;text-align:right;"><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">累計解答</div><div style="font-size:20px;font-weight:600;color:var(--text2);">'+solvedQ+'<span style="font-size:12px;font-weight:400;color:var(--text3);"> / '+totalQ+'</span></div></div>'
+    +'</div>';
+
+  // ── 分野別カウンター ──
   html+='<div class="sec-label">分野別カウンター</div><div class="fields-grid">';
   data.fields.forEach(function(f,i){
     var c=todayCount(f);var p=progress(f);var lap=lapCount(f);var isOpen=!!openCards[i];
@@ -597,8 +632,9 @@ function renderCounter(){
     }else{logHtml+='<div class="fc-log-title">ログはまだありません</div>';}
     html+='<div class="fc" onclick="toggleCard('+i+')">'
       +'<div class="fc-header"><span class="fc-name">'+f.name+'</span><span class="fc-arrow'+(isOpen?' open':'')+'">▾</span></div>'
-      +'<div class="fc-lap">'+lap+'周目</div><div class="fc-goal-line">目標 '+f.dailyGoal+'問／日</div>'
+      +'<div class="fc-lap">'+lap+'周目</div>'
       +'<div class="counter-row" onclick="event.stopPropagation()"><button class="cnt-btn" onclick="increment('+i+',-1)">−</button><span class="cnt-num">'+c+'</span><button class="cnt-btn" onclick="increment('+i+',1)">＋</button></div>'
+      +'<div style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:8px;">目標 '+f.dailyGoal+'問／日</div>'
       +'<div class="fc-bar-bg"><div class="fc-bar-fill" style="width:'+p+'%"></div></div>'
       +'<div class="fc-detail'+(isOpen?' open':'')+'">'
       +'<div class="fc-detail-row"><span class="fc-detail-label">進捗率</span><span class="fc-detail-val">'+p+'%</span></div>'
