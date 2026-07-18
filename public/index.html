@@ -36,7 +36,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 
 /* ── メインアプリ ── */
 #main-screen{display:none}
-.app{max-width:480px;margin:0 auto;padding:0 0 calc(var(--nav-h) + env(safe-area-inset-bottom,0px));min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:0 0 calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 32px);min-height:100vh}
 .header{padding:calc(env(safe-area-inset-top,0px) + 14px) 22px 2px;margin-bottom:8px}
 .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .header-left h1{font-size:14px;font-weight:600;letter-spacing:.01em;color:var(--text)}
@@ -193,7 +193,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 
 /* 実績通知 */
 .ach-toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);left:50%;transform:translateX(-50%);background:var(--surface);border:0.5px solid var(--accent-mid);border-radius:var(--radius-lg);padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);z-index:300;box-shadow:0 4px 16px rgba(74,62,54,.12);white-space:nowrap;animation:toastIn .3s cubic-bezier(.34,1.2,.64,1)}
-@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.92)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+@keyframes setFadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.set-fade{animation:setFadeIn .18s ease-out both}
+.set-cell{transition:transform .12s ease,background .12s ease}
+.set-cell:active{transform:scale(.98);background:rgba(74,62,54,0.03)}
+.main-cnt-btn{transition:transform .1s ease,box-shadow .1s ease}
+.main-cnt-btn:active{transform:scale(.98)}
+@keyframes numOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-22%)}}
+@keyframes numIn{from{opacity:0;transform:translateY(28%)}to{opacity:1;transform:translateY(0)}}
+.num-out{animation:numOut .16s cubic-bezier(.4,0,.6,1) forwards}
+.num-in{animation:numIn .19s cubic-bezier(.16,.84,.44,1) forwards}
+.field-row{transition:transform .12s ease,background .12s ease}
+.field-row:active{transform:scale(.98);background:rgba(74,62,54,0.03)}
+.field-bar-fill{transition:width .2s cubic-bezier(.16,.84,.44,1),background .2s ease}
 
 /* ── 設定 ── */
 .settings-list{padding:0 16px;display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
@@ -398,63 +411,76 @@ var achViewYear=null;var achViewMonth=null;var achSelectedDay=null;var achShowAl
 var openCards={};var currentTab='counter';var hmShowAllLogs=false;var fieldsExpanded=false;var expandedFields={};var recentExpanded=false;var examMenuOpen=false;var setFieldsOpen=false;var setFieldExpanded={};var setExamFormOpen=false;var settingsView='list';var setSelField=0;var setSelWb=0;var setFieldFormOpen=false;var setWbFormOpen=false;var setSelExamId='';var _animateField=null;var setEditingName=false;var setWbBack='field';
 
 // ── 実績定義 ──
-var ACH_ICONS={
-  first:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
-  day2:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/></svg>',
-  day5:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><circle cx="7" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="10.5" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="14" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="14" r="1" fill="currentColor" stroke="none"/></svg>',
-  day10:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>',
-  day21:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>',
-  day30:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.09 4.26 4.71.68-3.4 3.32.8 4.68L12 13.27l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>',
-  day60:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.09 4.26 4.71.68-3.4 3.32.8 4.68L12 13.27l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/><path d="M7 20.5 Q12 18 17 20.5"/></svg>',
-  day100:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-  q10:     '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
-  q50:     '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>',
-  q200:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
-  q500:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
-  q1000:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6-6 6 6"/><path d="M6 13l6-6 6 6"/><line x1="12" y1="4" x2="12" y2="21"/></svg>',
-  q2000:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-  lap2:    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
-  heatmap10:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><rect x="6" y="13" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="10" y="13" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="14" y="13" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/></svg>',
-  heatmap20:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><rect x="6" y="12" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="10" y="12" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="14" y="12" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="6" y="16" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="10" y="16" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/><rect x="14" y="16" width="2" height="2" rx=".4" fill="currentColor" stroke="none"/></svg>',
-  perfect7:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-  field50: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 19V6a2 2 0 0 1 2-2h13"/><path d="M8 19h13"/><path d="M8 6v13"/><line x1="12" y1="10" x2="16" y2="10"/><line x1="12" y1="14" x2="16" y2="14"/></svg>',
-  field100:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V6a2 2 0 0 1 2-2h13"/><path d="M8 19h13"/><path d="M8 6v13"/><polyline points="12 10 14 12 18 8"/></svg>',
-};
-var ACHIEVEMENTS=[
-  // はじめの一歩
-  {id:'first',   cat:'milestone',name:'はじめの一歩',  desc:'初めて記録をつけた',          check:function(d,s){return s.totalSolved>0;}},
-  // 連続日数
-  {id:'day2',    cat:'continue',name:'2日連続',       desc:'2日連続で記録した',  remain:function(s){return 2-s.streak;},unit:'日',check:function(d,s){return s.streak>=2;}},
-  {id:'day5',    cat:'continue',name:'5日連続',       desc:'5日連続で記録した',  remain:function(s){return 5-s.streak;},unit:'日',check:function(d,s){return s.streak>=5;}},
-  {id:'day10',   cat:'continue',name:'10日連続',      desc:'10日連続で記録した', remain:function(s){return 10-s.streak;},unit:'日',check:function(d,s){return s.streak>=10;}},
-  {id:'day21',   cat:'continue',name:'21日連続',      desc:'21日連続で記録した', remain:function(s){return 21-s.streak;},unit:'日',check:function(d,s){return s.streak>=21;}},
-  {id:'day30',   cat:'continue',name:'30日連続',      desc:'30日連続で記録した', remain:function(s){return 30-s.streak;},unit:'日',check:function(d,s){return s.streak>=30;}},
-  {id:'day60',   cat:'continue',name:'60日連続',      desc:'60日連続で記録した', remain:function(s){return 60-s.streak;},unit:'日',check:function(d,s){return s.streak>=60;}},
-  {id:'day100',  cat:'continue',name:'100日連続',     desc:'100日連続で記録した',remain:function(s){return 100-s.streak;},unit:'日',check:function(d,s){return s.streak>=100;}},
-  // 問題数
-  {id:'q10',     cat:'count',name:'10問',    desc:'累計10問解いた',     remain:function(s){return 10-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=10;}},
-  {id:'q50',     cat:'count',name:'50問',    desc:'累計50問解いた',     remain:function(s){return 50-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=50;}},
-  {id:'q200',    cat:'count',name:'200問',   desc:'累計200問解いた',    remain:function(s){return 200-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=200;}},
-  {id:'q500',    cat:'count',name:'500問',   desc:'累計500問解いた',    remain:function(s){return 500-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=500;}},
-  {id:'q1000',   cat:'count',name:'1000問',  desc:'累計1000問解いた',   remain:function(s){return 1000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=1000;}},
-  {id:'q2000',   cat:'count',name:'2000問',  desc:'累計2000問解いた',   remain:function(s){return 2000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=2000;}},
-  // マイルストーン
-  {id:'field50', cat:'milestone',name:'折り返し',  desc:'分野の進捗50%に到達',  check:function(d,s){return d.fields.some(function(f){return progress(f)>=50;});}},
-  {id:'field100',cat:'milestone',name:'分野制覇',  desc:'分野を100%達成',       check:function(d,s){return d.fields.some(function(f){return progress(f)>=100;});}},
-  {id:'lap2',    cat:'milestone',name:'2周目',     desc:'問題集を2周した',        check:function(d,s){return s.maxLap>=2;}},
-  // ヒートマップ
-  {id:'heatmap10',cat:'milestone',name:'10日記録',     desc:'今月10日記録した',         check:function(d,s){return s.thisMonthDays>=10;}},
-  {id:'heatmap20',cat:'milestone',name:'20日記録',     desc:'今月20日記録した',         check:function(d,s){return s.thisMonthDays>=20;}},
-  // 目標達成
-  {id:'perfect7',cat:'milestone',name:'完璧な週',   desc:'7日連続で目標を達成',    check:function(d,s){return s.perfectDays>=7;}},
-];
-
-// カテゴリ別アイコン（未獲得時に薄く表示）
 var ACH_CAT_ICONS={
   continue:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.5-2.5 1-3.5C9.5 8 10 9 11 9c0-2 0-4.5 1-7z"/></svg>',
   count:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
-  milestone:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a1 1 0 0 1 1-1h11l-2 4 2 4H5"/></svg>',
+  daily:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>',
+  field:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>',
+  workbook:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="16" y2="7"/></svg>',
+  special:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  secret:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
 };
+function achIcon(a){return ACH_CAT_ICONS[a.cat]||ACH_CAT_ICONS.special;}
+var ACHIEVEMENTS=[
+  // ① 継続実績
+  {id:'first',   cat:'continue',name:'はじめの一歩',desc:'初めて記録をつけた',check:function(d,s){return s.totalSolved>0;}},
+  {id:'day3',    cat:'continue',name:'3日連続',  desc:'3日連続で記録した',  remain:function(s){return 3-s.streak;},unit:'日',check:function(d,s){return s.streak>=3;}},
+  {id:'day7',    cat:'continue',name:'7日連続',  desc:'7日連続で記録した',  remain:function(s){return 7-s.streak;},unit:'日',check:function(d,s){return s.streak>=7;}},
+  {id:'day14',   cat:'continue',name:'14日連続', desc:'14日連続で記録した', remain:function(s){return 14-s.streak;},unit:'日',check:function(d,s){return s.streak>=14;}},
+  {id:'day30',   cat:'continue',name:'30日連続', desc:'30日連続で記録した', remain:function(s){return 30-s.streak;},unit:'日',check:function(d,s){return s.streak>=30;}},
+  {id:'day50',   cat:'continue',name:'50日連続', desc:'50日連続で記録した', remain:function(s){return 50-s.streak;},unit:'日',check:function(d,s){return s.streak>=50;}},
+  {id:'day100',  cat:'continue',name:'100日連続',desc:'100日連続で記録した',remain:function(s){return 100-s.streak;},unit:'日',check:function(d,s){return s.streak>=100;}},
+  {id:'day180',  cat:'continue',name:'180日連続',desc:'180日連続で記録した',remain:function(s){return 180-s.streak;},unit:'日',check:function(d,s){return s.streak>=180;}},
+  {id:'day365',  cat:'continue',name:'365日連続',desc:'365日連続で記録した',remain:function(s){return 365-s.streak;},unit:'日',check:function(d,s){return s.streak>=365;}},
+  {id:'day500',  cat:'continue',name:'500日連続',desc:'500日連続で記録した',remain:function(s){return 500-s.streak;},unit:'日',check:function(d,s){return s.streak>=500;}},
+  {id:'day730',  cat:'continue',name:'730日連続',desc:'730日連続で記録した',remain:function(s){return 730-s.streak;},unit:'日',check:function(d,s){return s.streak>=730;}},
+  {id:'day1000', cat:'continue',name:'1000日連続',desc:'1000日連続で記録した',remain:function(s){return 1000-s.streak;},unit:'日',check:function(d,s){return s.streak>=1000;}},
+  // ② 累計問題数
+  {id:'q100',    cat:'count',name:'100問',   desc:'累計100問解いた',   remain:function(s){return 100-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=100;}},
+  {id:'q300',    cat:'count',name:'300問',   desc:'累計300問解いた',   remain:function(s){return 300-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=300;}},
+  {id:'q500',    cat:'count',name:'500問',   desc:'累計500問解いた',   remain:function(s){return 500-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=500;}},
+  {id:'q1000',   cat:'count',name:'1000問',  desc:'累計1000問解いた',  remain:function(s){return 1000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=1000;}},
+  {id:'q3000',   cat:'count',name:'3000問',  desc:'累計3000問解いた',  remain:function(s){return 3000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=3000;}},
+  {id:'q5000',   cat:'count',name:'5000問',  desc:'累計5000問解いた',  remain:function(s){return 5000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=5000;}},
+  {id:'q10000',  cat:'count',name:'10000問', desc:'累計10000問解いた', remain:function(s){return 10000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=10000;}},
+  {id:'q20000',  cat:'count',name:'20000問', desc:'累計20000問解いた', remain:function(s){return 20000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=20000;}},
+  {id:'q50000',  cat:'count',name:'50000問', desc:'累計50000問解いた', remain:function(s){return 50000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=50000;}},
+  {id:'q100000', cat:'count',name:'100000問',desc:'累計100000問解いた',remain:function(s){return 100000-s.totalSolved;},unit:'問',check:function(d,s){return s.totalSolved>=100000;}},
+  // ③ 1日学習
+  {id:'dq10',    cat:'daily',name:'1日10問',  desc:'1日で10問解いた',  remain:function(s){return 10-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=10;}},
+  {id:'dq30',    cat:'daily',name:'1日30問',  desc:'1日で30問解いた',  remain:function(s){return 30-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=30;}},
+  {id:'dq50',    cat:'daily',name:'1日50問',  desc:'1日で50問解いた',  remain:function(s){return 50-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=50;}},
+  {id:'dq100',   cat:'daily',name:'1日100問', desc:'1日で100問解いた', remain:function(s){return 100-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=100;}},
+  {id:'dq200',   cat:'daily',name:'1日200問', desc:'1日で200問解いた', remain:function(s){return 200-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=200;}},
+  {id:'dq300',   cat:'daily',name:'1日300問', desc:'1日で300問解いた', remain:function(s){return 300-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=300;}},
+  // ④ 分野
+  {id:'field_first',cat:'field',name:'初回完了', desc:'分野を初めて100%完了',check:function(d,s){return d.fields.some(function(f){return progress(f)>=100;});}},
+  {id:'field50',  cat:'field',name:'折り返し',  desc:'いずれかの分野が進捗50%',check:function(d,s){return d.fields.some(function(f){return progress(f)>=50;});}},
+  {id:'field_all1',cat:'field',name:'全分野1周', desc:'全分野を1周した',check:function(d,s){return d.fields.length>0&&s.allFieldsLap>=1&&d.fields.every(function(f){return progress(f)>=100;});}},
+  {id:'field_all3',cat:'field',name:'全分野3周', desc:'全分野を3周した',remain:function(s){return 3-s.allFieldsLap;},unit:'周',check:function(d,s){return d.fields.length>0&&s.allFieldsLap>=3;}},
+  {id:'field_all5',cat:'field',name:'全分野5周', desc:'全分野を5周した',remain:function(s){return 5-s.allFieldsLap;},unit:'周',check:function(d,s){return d.fields.length>0&&s.allFieldsLap>=5;}},
+  // ⑤ 問題集
+  {id:'wb_lap1', cat:'workbook',name:'問題集1周',desc:'問題集を1周した',check:function(d,s){return s.maxLap>=1&&s.totalSolved>0&&d.fields.some(function(f){return fieldWorkbooks(f).some(function(w){return wbProgress(w)>=100;});});}},
+  {id:'wb_lap2', cat:'workbook',name:'問題集2周',desc:'問題集を2周した',remain:function(s){return 2-s.maxLap;},unit:'周',check:function(d,s){return s.maxLap>=2;}},
+  {id:'wb_lap3', cat:'workbook',name:'問題集3周',desc:'問題集を3周した',remain:function(s){return 3-s.maxLap;},unit:'周',check:function(d,s){return s.maxLap>=3;}},
+  {id:'wb_lap5', cat:'workbook',name:'問題集5周',desc:'問題集を5周した',remain:function(s){return 5-s.maxLap;},unit:'周',check:function(d,s){return s.maxLap>=5;}},
+  {id:'wb_lap10',cat:'workbook',name:'問題集10周',desc:'問題集を10周した',remain:function(s){return 10-s.maxLap;},unit:'周',check:function(d,s){return s.maxLap>=10;}},
+  // ⑥ 特別
+  {id:'heatmap10',cat:'special',name:'月10日記録',desc:'今月10日記録した',remain:function(s){return 10-s.thisMonthDays;},unit:'日',check:function(d,s){return s.thisMonthDays>=10;}},
+  {id:'heatmap20',cat:'special',name:'月20日記録',desc:'今月20日記録した',remain:function(s){return 20-s.thisMonthDays;},unit:'日',check:function(d,s){return s.thisMonthDays>=20;}},
+  {id:'month_perfect',cat:'special',name:'月間皆勤',desc:'今月すべての日に記録した',check:function(d,s){return s.monthPerfect;}},
+  {id:'perfect7',cat:'special',name:'完璧な週',desc:'7日連続で目標を達成した',remain:function(s){return 7-s.perfectDays;},unit:'日',check:function(d,s){return s.perfectDays>=7;}},
+  {id:'ach10',   cat:'special',name:'実績10個',desc:'実績を10個解除した',remain:function(s){return 10-s.unlockedNum;},unit:'個',check:function(d,s){return s.unlockedNum>=10;}},
+  {id:'ach25',   cat:'special',name:'実績25個',desc:'実績を25個解除した',remain:function(s){return 25-s.unlockedNum;},unit:'個',check:function(d,s){return s.unlockedNum>=25;}},
+  // ⑦ シークレット（達成まで条件非公開）
+  {id:'s_night', cat:'secret',secret:true,name:'夜更かし学習',desc:'深夜0〜4時に記録した',check:function(d,s){var h=new Date().getHours();return s.totalSolved>0&&h>=0&&h<4;}},
+  {id:'s_morning',cat:'secret',secret:true,name:'朝活マスター',desc:'早朝5〜7時に記録した',check:function(d,s){var h=new Date().getHours();return s.totalSolved>0&&h>=5&&h<7;}},
+  {id:'s_newyear',cat:'secret',secret:true,name:'元旦学習',desc:'1月1日に学習した',check:function(d,s){var t=new Date();return s.totalSolved>0&&t.getMonth()===0&&t.getDate()===1;}},
+  {id:'s_focus', cat:'secret',secret:true,name:'超集中',desc:'1日で300問以上解いた',check:function(d,s){return s.maxDay>=300;}},
+  {id:'s_legend',cat:'secret',secret:true,name:'レジェンド',desc:'累計50000問を達成した',check:function(d,s){return s.totalSolved>=50000;}},
+];
+
+// カテゴリ別アイコン（未獲得時に薄く表示）
 
 function defaultData(){return{goalDate:'',fields:[
   {name:'法規・法令',total:200,dailyGoal:10,prevSolved:0,memo:'',counts:{},logs:[]},
@@ -523,6 +549,182 @@ function syncActiveExam(){
   data.fields=e.fields;
   data.examName=e.name;
   data.goalDate=e.goalDate;
+  if(!e.milestones)e.milestones=[];
+  data.milestones=e.milestones;
+}
+
+// ── 試験区分（固定4種）と目標日テンプレート ──
+var WB_SECTIONS=['短答','論文','共通','その他'];
+// テンプレートのマイルストーン種別（区分ごとに複数の目標日を持てる）
+var GOAL_MILESTONES=[
+  {key:'round1',label:'1周目完了'},
+  {key:'round2',label:'2周目完了'},
+  {key:'exam',label:'試験当日'}
+];
+function sectionGoals(){
+  var e=activeExam();
+  if(!e)return{};
+  if(!e.sectionGoals)e.sectionGoals={};
+  migrateSectionGoals(e.sectionGoals);
+  return e.sectionGoals;
+}
+// 旧形式 {短答:'2026-07-31'} → 新形式 {短答:{round1:'',round2:'',exam:'2026-07-31'}} へ冪等移行
+// 旧値は「試験当日」の目標日として引き継ぐ（従来の意味に最も近いため）
+function migrateSectionGoals(sg){
+  WB_SECTIONS.forEach(function(s){
+    var v=sg[s];
+    if(typeof v==='string'){sg[s]={round1:'',round2:'',exam:v||''};}
+    else if(!v){sg[s]={round1:'',round2:'',exam:''};}
+    else{GOAL_MILESTONES.forEach(function(m){if(v[m.key]===undefined)v[m.key]='';});}
+  });
+}
+// 問題集の有効な目標日（個別設定＞区分テンプレート）。milestoneKey省略時は現在の周回段階に応じて自動選択
+function wbMilestoneKey(w){
+  var lap=wbLap(w);
+  if(lap<=1)return 'round1';
+  if(lap===2)return 'round2';
+  return 'exam';
+}
+function effectiveWbGoal(w,milestoneKey){
+  if(w.goalDate)return w.goalDate; // 個別設定が最優先
+  if(!w.section)return null;
+  var key=milestoneKey||wbMilestoneKey(w);
+  var sg=sectionGoals()[w.section];
+  return (sg&&sg[key])?sg[key]:null;
+}
+// テンプレート保存（applyExisting=trueで個別未設定の同区分問題集へ反映）
+function saveSectionGoal(section,milestoneKey,date,applyExisting){
+  var sg=sectionGoals();
+  if(!sg[section])sg[section]={round1:'',round2:'',exam:''};
+  sg[section][milestoneKey]=date||'';
+  if(applyExisting){
+    data.fields.forEach(function(f){
+      fieldWorkbooks(f).forEach(function(w){
+        if(w.section===section&&!w.goalCustom&&wbMilestoneKey(w)===milestoneKey){w.goalDate='';/*個別未設定のまま＝テンプレ追従*/}
+      });
+    });
+  }
+  save();
+}
+// 目標日が設定された日付→問題集リストのマップ（実績カレンダー連携用）
+function goalDateMap(){
+  var m={};
+  data.fields.forEach(function(f){
+    fieldWorkbooks(f).forEach(function(w){
+      var g=effectiveWbGoal(w);
+      if(g){if(!m[g])m[g]=[];m[g].push({name:w.name,section:w.section||''});}
+    });
+  });
+  return m;
+}
+
+// ── 学習マイルストーン（模試・申込日・試験当日など） ──
+var MILESTONE_TYPES={
+  mock:{label:'模試',icon:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'},
+  app_open:{label:'試験申込開始',icon:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'},
+  app_close:{label:'試験申込締切',icon:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="14" x2="15" y2="18"/><line x1="15" y1="14" x2="9" y2="18"/></svg>'},
+  exam_day:{label:'試験当日',icon:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'},
+  free:{label:'イベント',icon:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/></svg>'}
+};
+function milestoneList(){var e=activeExam();if(!e)return[];if(!e.milestones)e.milestones=[];return e.milestones;}
+// 日付→その日のマイルストーン配列のマップ（カレンダー表示用）
+function milestoneDateMap(){
+  var m={};
+  milestoneList().forEach(function(ms){
+    if(!ms.date)return;
+    if(!m[ms.date])m[ms.date]=[];
+    m[ms.date].push(ms);
+  });
+  return m;
+}
+function addMilestone(type,title,date){
+  if(!date)return;
+  var list=milestoneList();
+  list.push({id:genId('ms'),type:type,title:title||(MILESTONE_TYPES[type]||{}).label||'',date:date});
+  save();
+}
+function updMilestone(id,key,val){
+  var ms=milestoneList().filter(function(x){return x.id===id;})[0];
+  if(!ms)return;
+  ms[key]=val;
+  save();
+}
+function removeMilestone(id){
+  var list=milestoneList();
+  var idx=list.findIndex(function(x){return x.id===id;});
+  if(idx<0)return;
+  list.splice(idx,1);
+  save();
+}
+// 試験当日・申込日の入力は、種別固定の自動マイルストーンとして同期する
+function syncTypedMilestone(type,label,date){
+  var list=milestoneList();
+  var existing=list.filter(function(x){return x.type===type;})[0];
+  if(!date){if(existing)removeMilestone(existing.id);return;}
+  if(existing)updMilestone(existing.id,'date',date);
+  else addMilestone(type,label,date);
+}
+function syncExamDayMilestone(date){syncTypedMilestone('exam_day','試験当日',date);renderSettings();}
+function syncAppMilestone(type,date){syncTypedMilestone(type,MILESTONE_TYPES[type].label,date);renderSettings();}
+// マイルストーン追加/編集Bottom Sheet
+function openMilestoneSheet(id){
+  var ms=id?milestoneList().filter(function(x){return x.id===id;})[0]:null;
+  var date=ms?ms.date:achSelectedDay;
+  var type=ms?ms.type:'mock';
+  var title=ms?(ms.title||''):'';
+  var typeOpts='';
+  Object.keys(MILESTONE_TYPES).forEach(function(k){typeOpts+='<option value="'+k+'"'+(type===k?' selected':'')+'>'+MILESTONE_TYPES[k].label+'</option>';});
+  var fieldStyle='width:100%;font-size:15px;color:var(--text);border:0.5px solid var(--border);background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;font-family:inherit;box-sizing:border-box;';
+  var labelStyle='font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text3);margin-bottom:6px;';
+  var html='<div class="day-modal-bg" onclick="closeAchModal()">'
+    +'<div class="day-modal" onclick="event.stopPropagation()">'
+    +'<div class="day-modal-handle"></div>'
+    +'<div style="font-size:17px;font-weight:700;color:var(--text);margin:4px 0 18px;">'+(ms?'予定を編集':'予定を追加')+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:14px;">'
+    +'<div><div style="'+labelStyle+'">種類</div><select id="ms-type" style="'+fieldStyle+'">'+typeOpts+'</select></div>'
+    +'<div><div style="'+labelStyle+'">タイトル（任意）</div><input id="ms-title" type="text" placeholder="例：全国公開模試" value="'+title+'" style="'+fieldStyle+'"></div>'
+    +'<div><div style="'+labelStyle+'">日付</div><input id="ms-date" type="date" value="'+date+'" style="'+fieldStyle+'"></div>'
+    +'</div>'
+    +'<button onclick="saveMilestoneSheet('+(ms?'\''+ms.id+'\'':'null')+')" style="width:100%;padding:13px;border:none;border-radius:var(--radius-lg);background:var(--accent);color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:20px;box-shadow:0 3px 10px rgba(192,122,90,0.22);">保存</button>'
+    +(ms?'<div onclick="if(confirm(\'この予定を削除しますか？\')){removeMilestone(\''+ms.id+'\');closeAchModal();renderAchievements();}" style="text-align:center;color:#c0584a;font-size:14px;cursor:pointer;padding:16px 0 2px;">削除</div>':'')
+    +'</div></div>';
+  var el=document.getElementById('day-modal');
+  el.innerHTML=html;el.style.display='block';
+}
+function saveMilestoneSheet(id){
+  var type=document.getElementById('ms-type').value;
+  var title=document.getElementById('ms-title').value.trim();
+  var date=document.getElementById('ms-date').value;
+  if(!date)return;
+  if(id){updMilestone(id,'type',type);updMilestone(id,'title',title);updMilestone(id,'date',date);}
+  else{addMilestone(type,title,date);}
+  closeAchModal();
+  renderAchievements();
+}
+
+// ── ID付与（将来の並び替え・アーカイブ・同期の基盤）──
+// 冪等：既にidがあれば何もしない。
+// 新しい永続エンティティを追加したら ID_TARGETS に1行足すだけでID付与が効く。
+function genId(p){return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function eachWorkbook(d,fn){
+  (d.exams||[]).forEach(function(e){
+    (e.fields||[]).forEach(function(f){
+      (Array.isArray(f.workbooks)?f.workbooks:[]).forEach(function(w){fn(w,f,e);});
+    });
+  });
+}
+var ID_TARGETS=[
+  {prefix:'exam',get:function(d){return d.exams||[];}},
+  {prefix:'f',get:function(d){var a=[];(d.exams||[]).forEach(function(e){(e.fields||[]).forEach(function(f){a.push(f);});});return a;}},
+  {prefix:'w',get:function(d){var a=[];eachWorkbook(d,function(w){a.push(w);});return a;}},
+  {prefix:'log',get:function(d){var a=[];eachWorkbook(d,function(w){(w.logs||[]).forEach(function(l){a.push(l);});});return a;}},
+  {prefix:'ms',get:function(d){return d.milestones||[];}}, // マイルストーン（実装前だが先行対応）
+  // 将来: Counter を1対多化する場合はここに {prefix:'cnt',get:...} を追加
+];
+function ensureIds(d){
+  ID_TARGETS.forEach(function(t){
+    t.get(d).forEach(function(o){if(o&&typeof o==='object'&&!o.id)o.id=genId(t.prefix);});
+  });
 }
 
 var data=loadLocal();
@@ -532,6 +734,8 @@ migrateToWorkbooks(data);
 if(!data.unlockedAchievements)data.unlockedAchievements=[];
 if(data.examName===undefined)data.examName='';
 migrateToExams(data);
+ensureIds(data);
+migrateWbRounds(data);
 syncActiveExam();
 
 async function saveToCloud(){if(!currentUser)return;try{await sb.from('study_data').upsert({user_id:currentUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:'user_id'});showSync('☁ 保存しました');}catch(e){}}
@@ -541,13 +745,15 @@ async function loadFromCloud(){if(!currentUser)return false;try{var res=await sb
   migrateToWorkbooks(data);
   if(!data.unlockedAchievements)data.unlockedAchievements=[];
   migrateToExams(data);
+  ensureIds(data);
+  migrateWbRounds(data);
   syncActiveExam();
   saveLocal(data);
   // 移行が発生した場合はクラウドを新構造に確定保存
   if(needMigrate){try{await saveToCloud();}catch(e){}}
   return true;}}catch(e){}return false;}
-async function migrateLocalToCloud(){var local=loadLocal();var hasLocal=(local.fields||[]).some(function(f){return Object.keys(f.counts||{}).length>0||f.prevSolved>0;});if(!hasLocal)return;var res=await sb.from('study_data').select('id').eq('user_id',currentUser.id).single();if(res.error||!res.data){data=local;migrateToWorkbooks(data);migrateToExams(data);syncActiveExam();await saveToCloud();showSync('☁ ローカルデータを移行しました');}}
-function save(){saveLocal(data);if(currentUser)saveToCloud();checkAchievements();}
+async function migrateLocalToCloud(){var local=loadLocal();var hasLocal=(local.fields||[]).some(function(f){return Object.keys(f.counts||{}).length>0||f.prevSolved>0;});if(!hasLocal)return;var res=await sb.from('study_data').select('id').eq('user_id',currentUser.id).single();if(res.error||!res.data){data=local;migrateToWorkbooks(data);migrateToExams(data);ensureIds(data);migrateWbRounds(data);syncActiveExam();await saveToCloud();showSync('☁ ローカルデータを移行しました');}}
+function save(){ensureIds(data);migrateWbRounds(data);saveLocal(data);if(currentUser)saveToCloud();checkAchievements();}
 function showSync(msg){var el=document.getElementById('sync-status');if(el){el.textContent=msg;setTimeout(function(){el.textContent='';},3000);}}
 
 function showLoginScreen(){document.getElementById('login-screen').style.display='flex';document.getElementById('main-screen').style.display='none';dismissSplash();}
@@ -660,7 +866,16 @@ function dismissSplash(){
   },wait);
 }
 
-function todayStr(){return new Date().toISOString().slice(0,10);}
+// 「学習日」の境界は深夜5時。0〜4時台の操作は前日に加算する。
+// ローカル時刻基準でYYYY-MM-DDを返す（UTCずれを排除）。
+var DAY_BOUNDARY_HOUR=5;
+function localDateStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function studyDate(d){
+  var x=new Date(d.getTime());
+  if(x.getHours()<DAY_BOUNDARY_HOUR)x.setDate(x.getDate()-1);
+  return x;
+}
+function todayStr(){return localDateStr(studyDate(new Date()));}
 // フォールバック：万一auth判定が遅くても最大3.5秒で消す
 setTimeout(function(){if(!_authReady)dismissSplash();},3500);
 
@@ -673,7 +888,26 @@ function fieldWorkbooks(f){
 function wbCounted(w){var s=0;Object.keys(w.counts||{}).forEach(function(k){s+=w.counts[k];});return s;}
 function wbSolved(w){return (w.prevSolved||0)+wbCounted(w);}
 function wbProgress(w){return w.total>0?Math.min(100,Math.round(wbSolved(w)/w.total*100)):0;}
-function wbLap(w){return w.total>0?Math.floor(wbSolved(w)/w.total)+1:1;}
+// 周回：currentRound / roundStartSolved を明示保持（設計書5準拠）。
+// 未確定の間は目標到達しても次周へ進めず、confirmWbRoundComplete()の「完了する」で進む。
+function wbLap(w){
+  if(typeof w.currentRound==='number')return w.currentRound;
+  return w.total>0?Math.floor(wbSolved(w)/w.total)+1:1; // 未マイグレーションの旧データ用フォールバック
+}
+// この周でこれまでに解いた数（roundStartSolvedからの差分）
+function wbInRound(w){return Math.max(0,wbSolved(w)-(w.roundStartSolved||0));}
+// 目標到達済みだが未確認か
+function wbRoundPending(w){return !!(w.total>0&&wbInRound(w)>=w.total&&!w._roundJustReset);}
+// 旧データ（currentRound未保持）を、現行のlap計算と矛盾しない形で補完する
+function migrateWbRounds(d){
+  eachWorkbook(d,function(w){
+    if(typeof w.currentRound!=='number'){
+      var lap=w.total>0?Math.floor(wbSolved(w)/w.total)+1:1;
+      w.currentRound=lap;
+      w.roundStartSolved=w.total>0?(lap-1)*w.total:0;
+    }
+  });
+}
 function wbTodayCount(w){return(w.counts||{})[todayStr()]||0;}
 
 // 分野(field)単位：配下の問題集を合算
@@ -688,20 +922,41 @@ function fieldDailyGoal(f){return fieldWorkbooks(f).reduce(function(a,w){return 
 function fieldCountForDate(f,key){return fieldWorkbooks(f).reduce(function(a,w){return a+((w.counts||{})[key]||0);},0);}
 
 // メインに表示する分野：最後に触った分野を最優先（自動おすすめはしない）
+// アクティブな問題集を持つ分野が対象。1つも無ければ-1
 function getMainFieldIdx(){
   if(!data.fields.length)return -1;
-  if(data.lastActiveWb&&data.fields[data.lastActiveWb.f])return data.lastActiveWb.f;
-  if(typeof data.lastActiveField==='number'&&data.fields[data.lastActiveField])return data.lastActiveField;
-  return 0; // 初回のみ先頭
+  if(data.lastActiveWb&&data.fields[data.lastActiveWb.f]&&activeWbCount(data.fields[data.lastActiveWb.f])>0)return data.lastActiveWb.f;
+  if(typeof data.lastActiveField==='number'&&data.fields[data.lastActiveField]&&activeWbCount(data.fields[data.lastActiveField])>0)return data.lastActiveField;
+  for(var i=0;i<data.fields.length;i++){if(activeWbCount(data.fields[i])>0)return i;}
+  return -1;
 }
 
 // 分野内でメインに表示する問題集：最後に触った問題集を最優先
-// インデックスが範囲外（設定で削除・並べ替えされた等）の場合は0に丸める
+// アクティブ（非アーカイブ）が1冊も無ければ-1
 function getMainWbIdx(fieldIdx){
-  var f=data.fields[fieldIdx];if(!f)return 0;
+  var f=data.fields[fieldIdx];if(!f)return -1;
   var wbs=fieldWorkbooks(f);
-  if(data.lastActiveWb&&data.lastActiveWb.f===fieldIdx&&typeof data.lastActiveWb.w==='number'&&wbs[data.lastActiveWb.w])return data.lastActiveWb.w;
-  return 0; // 初回・範囲外は先頭
+  if(data.lastActiveWb&&data.lastActiveWb.f===fieldIdx&&typeof data.lastActiveWb.w==='number'&&wbs[data.lastActiveWb.w]&&!wbs[data.lastActiveWb.w].archivedAt)return data.lastActiveWb.w;
+  // 先頭のアクティブ（非アーカイブ）問題集
+  for(var j=0;j<wbs.length;j++){if(!wbs[j].archivedAt)return j;}
+  return -1;
+}
+
+// ── アーカイブ ──
+// 問題集は削除ではなくアーカイブが基本：ホーム非表示・記録保持・実績集計には含む・復元可能
+function isActiveWb(w){return !w.archivedAt;}
+function activeWbCount(f){return fieldWorkbooks(f).filter(isActiveWb).length;}
+function archiveWb(fi,wj){
+  var wbs=fieldWorkbooks(data.fields[fi]);var w=wbs[wj];if(!w)return;
+  w.archivedAt=new Date().toISOString();
+  // メイン表示中だったら選択をリセット
+  if(data.lastActiveWb&&data.lastActiveWb.f===fi&&data.lastActiveWb.w===wj)data.lastActiveWb=null;
+  save();
+}
+function restoreWb(fi,wj){
+  var wbs=fieldWorkbooks(data.fields[fi]);var w=wbs[wj];if(!w)return;
+  delete w.archivedAt;
+  save();
 }
 
 // 全分野の全問題集をフラットに列挙（前/次ナビ用）
@@ -762,8 +1017,8 @@ function calcStreak(){
       });
     });
   });
-  var streak=0;var d=new Date();if(!allDates[todayStr()])d.setDate(d.getDate()-1);
-  while(true){var key=d.toISOString().slice(0,10);if(!allDates[key])break;streak++;d.setDate(d.getDate()-1);}
+  var streak=0;var d=studyDate(new Date());if(!allDates[localDateStr(d)])d.setDate(d.getDate()-1);
+  while(true){var key=localDateStr(d);if(!allDates[key])break;streak++;d.setDate(d.getDate()-1);}
   return streak;
 }
 function updateHeaderStreak(){var el=document.getElementById('streak-num');if(el)el.textContent=calcStreak();}
@@ -775,7 +1030,7 @@ function calcStats(){
   var maxLap=1;
   data.fields.forEach(function(f){fieldWorkbooks(f).forEach(function(w){var l=wbLap(w);if(l>maxLap)maxLap=l;});});
   var minProg=data.fields.length?data.fields.reduce(function(a,f){return Math.min(a,progress(f));},100):0;
-  var now2=new Date();var yr=now2.getFullYear(),mo=now2.getMonth();
+  var now2=studyDate(new Date());var yr=now2.getFullYear(),mo=now2.getMonth();
   var daysInMonth=new Date(yr,mo+1,0).getDate();
   var thisMonthDays=0;
   var allDates={};
@@ -786,13 +1041,25 @@ function calcStats(){
   });
   for(var d=1;d<=daysInMonth;d++){var key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(allDates[key])thisMonthDays++;}
   // perfectDays: 連続で全分野が1日目標を達成した日数（分野=配下問題集合算）
-  var perfectDays=0;var pd=new Date();
+  var perfectDays=0;var pd=studyDate(new Date());
   for(var i=0;i<365;i++){
-    var pkey=pd.toISOString().slice(0,10);
+    var pkey=localDateStr(pd);
     var allMet=data.fields.every(function(f){return fieldCountForDate(f,pkey)>=fieldDailyGoal(f);});
     if(allMet&&data.fields.length>0){perfectDays++;pd.setDate(pd.getDate()-1);}else break;
   }
-  return{totalSolved:totalS,streak:streak,maxLap:maxLap,minProgress:minProg,thisMonthDays:thisMonthDays,perfectDays:perfectDays};
+  // 日別合計マップ（全分野横断）
+  var dayMap={};
+  data.fields.forEach(function(f){fieldWorkbooks(f).forEach(function(w){Object.keys(w.counts||{}).forEach(function(k){dayMap[k]=(dayMap[k]||0)+(w.counts[k]||0);});});});
+  // 1日の最大問題数
+  var maxDay=0;Object.keys(dayMap).forEach(function(k){if(dayMap[k]>maxDay)maxDay=dayMap[k];});
+  // 全分野の最小周回（＝全分野が達成した最低周回数）
+  var allFieldsLap=data.fields.length?data.fields.reduce(function(a,f){var fl=1;fieldWorkbooks(f).forEach(function(w){var l=wbLap(w);if(l<fl||fl===1)fl=Math.min(fl===1?l:fl,l);});return Math.min(a,fl);},999):0;
+  if(allFieldsLap===999)allFieldsLap=0;
+  // 解除済み実績数
+  var unlockedNum=(data.unlockedAchievements||[]).length;
+  // 月間皆勤（今月の全日に記録）／年間皆勤（過去365日すべて記録）
+  var monthPerfect=(thisMonthDays>=daysInMonth&&daysInMonth>0);
+  return{totalSolved:totalS,streak:streak,maxLap:maxLap,minProgress:minProg,thisMonthDays:thisMonthDays,perfectDays:perfectDays,maxDay:maxDay,allFieldsLap:allFieldsLap,unlockedNum:unlockedNum,monthPerfect:monthPerfect,dayMap:dayMap};
 }
 
 function checkAchievements(){
@@ -817,14 +1084,14 @@ function checkAchievements(){
 function showAchToast(ach){
   var el=document.createElement('div');
   el.className='ach-toast';
-  el.innerHTML='<div style="width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;">'+ACH_ICONS[ach.id]+'</div>'
+  el.innerHTML='<div style="width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;">'+achIcon(ach)+'</div>'
     +'<div style="line-height:1.3;"><div style="font-size:10px;color:var(--text3);letter-spacing:.04em;">実績解除</div><div style="font-size:13px;font-weight:600;color:var(--text);">'+ach.name+'</div></div>';
   document.body.appendChild(el);
   triggerHaptic(true);
   setTimeout(function(){
     el.style.opacity='0';el.style.transition='opacity .4s';
     setTimeout(function(){el.remove();},450);
-  },2800);
+  },1600);
 }
 
 function fmtTime(ts){var d=new Date(ts);var h=String(d.getHours()).padStart(2,'0');var m=String(d.getMinutes()).padStart(2,'0');if(d.toDateString()===new Date().toDateString())return h+':'+m;return (d.getMonth()+1)+'/'+d.getDate()+' '+h+':'+m;}
@@ -848,50 +1115,30 @@ function renderCounter(){
 
   var html='<div class="tab-pane">';
 
-  // ════ 挑戦中の試験（タップでプルダウン切替）════
+  // ════ 挑戦中の試験（表示のみ・1件固定運用）════
   var examLabel=data.examName&&data.examName.trim()?data.examName:'試験を設定';
-  var goalChip='';
+  var goalChip='';var daysLeft=0;
   if(data.goalDate){
     var gObj=new Date(data.goalDate);gObj.setHours(0,0,0,0);
     var nObj=new Date();nObj.setHours(0,0,0,0);
-    var daysLeft=Math.max(0,Math.round((gObj-nObj)/864e5));
-    goalChip='<span style="color:var(--text3);">あと'+daysLeft+'日</span>';
+    daysLeft=Math.max(0,Math.round((gObj-nObj)/864e5));
+    goalChip='1';
   }
-  var subLine=goalChip;
-  html+='<div style="margin:4.5vh 22px calc(4.5vh + 14px);position:relative;">'
-    +'<div onclick="toggleExamMenu()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;">'
-    +'<div style="display:flex;align-items:center;gap:5px;min-width:0;">'
-    +'<span style="font-size:17px;font-weight:400;color:'+(data.examName?'var(--text)':'var(--text3)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+examLabel+'</span>'
-    +'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;transition:transform .2s;'+(examMenuOpen?'transform:rotate(180deg);':'')+'"><polyline points="6 9 12 15 18 9"/></svg>'
-    +'</div>'
+  html+='<div style="margin:4.5vh 22px calc(4.5vh + 14px);">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">'
+    +'<span style="font-size:17px;font-weight:400;color:'+(data.examName?'var(--text)':'var(--text3)')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">'+examLabel+'</span>'
     +(goalChip?'<span style="font-size:15px;font-weight:300;color:var(--text3);flex-shrink:0;">あと'+daysLeft+'日</span>':'')
     +'</div>';
-  // プルダウンメニュー
-  if(examMenuOpen){
-    html+='<div style="margin-top:8px;background:var(--surface);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(74,62,54,0.1);">';
-    data.exams.forEach(function(ex){
-      var on=(ex.id===data.activeExamId);
-      html+='<div onclick="switchExam(\''+ex.id+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;'+(on?'background:var(--accent-light);':'')+'border-bottom:0.5px solid var(--border);">'
-        +'<span style="font-size:14px;font-weight:'+(on?'600':'500')+';color:'+(on?'var(--accent)':'var(--text)')+';">'+(ex.name||'無題の試験')+'</span>'
-        +(on?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':'')
-        +'</div>';
-    });
-    html+='<div onclick="showTab(\'settings\')" style="padding:11px 16px;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--text3);">'
-      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
-      +'<span style="font-size:13px;">試験を管理</span>'
-      +'</div>';
-    html+='</div>';
-  }
   html+='</div>';
 
   // ════ ② アクティブ学習カード（最後に触った問題集を常に1枚）════
   var mainIdx=getMainFieldIdx();
-  if(mainIdx>=0){
+  var mwbIdx=mainIdx>=0?getMainWbIdx(mainIdx):-1;
+  if(mainIdx>=0&&mwbIdx>=0){
     var allWbs=getAllWorkbooks();
     var mf=data.fields[mainIdx];
-    var mwbIdx=getMainWbIdx(mainIdx);
     var mwbs=fieldWorkbooks(mf);
-    var mw=mwbs[mwbIdx]||mwbs[0];
+    var mw=mwbs[mwbIdx];
     var mSolved=wbSolved(mw);var mTotal=mw.total||0;var mlap=wbLap(mw);
     var inLap=mTotal>0?(mSolved%mTotal):mSolved;
     if(mTotal>0&&inLap===0&&mSolved>0)inLap=mTotal;
@@ -910,15 +1157,15 @@ function renderCounter(){
       // 上段：分野名（左・ラベル化）＋リング（右上）
       +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">'
       +'<div style="min-width:0;flex:1;">'
-      +'<div style="font-size:11px;color:var(--text3);">'+mf.name+'</div>'
-      +'<div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.2;margin-top:1px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+mw.name+'</div>'
+      +'<div style="font-size:11px;color:var(--text3);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+mf.name+'</div>'
+      +'<div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.3;margin-top:1px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+mw.name+'</div>'
       +'</div>'
       +ring
       +'</div>'
       // 中央：今日の学習数（最優先・最大）
       +'<div style="text-align:center;margin:15px 0 8px;">'
       +'<div style="display:inline-flex;align-items:baseline;gap:5px;">'
-      +'<span style="font-size:78px;font-weight:700;color:var(--text);line-height:.9;letter-spacing:-.03em;" id="main-today">'+todayWb+'</span>'
+      +'<span style="font-size:78px;font-weight:700;color:var(--text);line-height:.9;letter-spacing:-.03em;display:inline-block;" id="main-today">'+todayWb+'</span>'
       +'<span style="font-size:18px;color:var(--text3);">問</span>'
       +'</div>'
       +'</div>'
@@ -929,41 +1176,78 @@ function renderCounter(){
       +'</div>'
       // ボタン（横並び：−左・控えめ／＋右・主役）
       +'<div style="display:flex;align-items:center;">'
-      +'<button class="main-cnt-btn" id="main-minus" onclick="incrementWb('+mainIdx+','+mwbIdx+',-1)" style="width:62px;height:46px;border-radius:12px;border:none;background:var(--bg);color:var(--text3);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;">−</button>'
+      +'<button class="main-cnt-btn" id="main-minus" onclick="incrementWb('+mainIdx+','+mwbIdx+',-1)" style="width:62px;height:46px;border-radius:12px;border:none;background:var(--bg);color:var(--text3);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;">−</button>'
       +'<div style="flex:1;"></div>'
-      +'<button class="main-cnt-btn" id="main-plus" onclick="incrementWb('+mainIdx+','+mwbIdx+',1)" style="width:76px;height:56px;border-radius:16px;border:none;background:var(--accent);color:#fff;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;box-shadow:0 3px 10px rgba(192,122,90,0.28);">＋</button>'
+      +'<button class="main-cnt-btn" id="main-plus" onclick="incrementWb('+mainIdx+','+mwbIdx+',1)" style="width:88px;height:60px;border-radius:17px;border:none;background:var(--accent);color:#fff;font-size:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;box-shadow:0 3px 10px rgba(192,122,90,0.28);">＋</button>'
       +'</div>'
       +'</div>';
   }
 
+  // ════ 実績導線（達成率が最も高い未達成1件・最小限）════
+  (function(){
+    var unlocked=data.unlockedAchievements||[];
+    var st=calcStats();
+    var best=null;
+    ACHIEVEMENTS.forEach(function(a){
+      if(a.secret)return;
+      if(unlocked.indexOf(a.id)!==-1)return;
+      if(!a.remain)return;
+      var r=a.remain(st);if(r<=0)return;
+      var ratio=achProgressValue(a,st);
+      if(best===null||ratio>best.ratio)best={ach:a,remain:r,ratio:ratio};
+    });
+    if(best){
+      var icon=achIcon(best.ach);
+      html+='<div onclick="showTab(\'achievements\');setTimeout(openAchListModal,50)" style="display:flex;align-items:center;gap:7px;margin:0 22px 14px;padding:0 2px;cursor:pointer;">'
+        +'<span style="color:var(--accent);display:flex;flex-shrink:0;transform:scale(.62);transform-origin:left center;">'+icon+'</span>'
+        +'<span style="font-size:13px;color:var(--text3);">'+best.ach.name+'まであと'+best.remain+best.ach.unit+'</span>'
+        +'</div>';
+    }
+  })();
+
   // ════ ③ 分野リスト（ナビ兼サマリー・固定順・同時展開1つ）════
   html+='<div class="sec-label" style="padding:0 22px;">分野</div>';
   html+='<div style="margin:0 22px 16px;">';
+  if(data.fields.length===0){
+    // Empty State
+    html+='<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 0 30px;color:var(--text3);">'
+      +'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:.7;margin-bottom:12px;"><path d="M4 4v16M8 4v16"/><rect x="11" y="4" width="9" height="16" rx="1" transform="rotate(4 15 12)"/></svg>'
+      +'<div style="font-size:14px;font-weight:500;color:var(--text2);">まだ分野がありません</div>'
+      +'<div style="font-size:12px;color:var(--text3);margin-top:3px;">設定の＋から追加しましょう</div>'
+      +'</div>';
+  }else{
   var curF2=getMainFieldIdx(),curW2=getMainWbIdx(curF2);
   data.fields.forEach(function(f,i){
     var fp=progress(f);
     var open=!!expandedFields[i];
-    // 分野の平均進捗リング（20px・補助）
-    var rr=8,cc=Math.round(2*Math.PI*rr);
-    var dd=Math.round(cc*(fp/100));
-    var ring='<svg width="20" height="20" viewBox="0 0 20 20" style="flex-shrink:0;">'
-      +'<circle cx="10" cy="10" r="'+rr+'" fill="none" stroke="var(--accent-light)" stroke-width="2.4"/>'
-      +'<circle cx="10" cy="10" r="'+rr+'" fill="none" stroke="var(--accent-mid)" stroke-width="2.4" stroke-dasharray="'+dd+' '+cc+'" stroke-linecap="round" transform="rotate(-90 10 10)"/>'
-      +'</svg>';
-    var staticOpen=(open&&i!==_animateField); // 既に開いてた分野は即open（アニメなし）
-    // 分野行（リスト形式・カード化しない）
-    html+='<div onclick="toggleFieldExpand('+i+')" style="display:flex;align-items:center;gap:9px;padding:7px 4px;cursor:pointer;border-bottom:0.5px solid var(--border);">'
-      +'<span style="flex:1;min-width:0;font-size:15px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</span>'
-      +ring
-      +'<svg class="field-chev'+(staticOpen?' open':'')+'" data-fi="'+i+'" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'
-      +'</div>';
-    // 展開領域（常時DOM・grid-rowsで高さアニメ）
     var wbs=fieldWorkbooks(f);
+    var multiWb=wbs.filter(isActiveWb).length>1;
+    var staticOpen=(open&&i!==_animateField); // 既に開いてた分野は即open（アニメなし）
+    var barFull=(fp>=100);
+    // 問題集アイコン（複数登録時のみ・控えめ）
+    var wbIcon=multiWb?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.65;"><path d="M4 4v16M8 4v16"/><rect x="11" y="4" width="9" height="16" rx="1" transform="rotate(4 15 12)"/></svg>':'';
+    // 分野行（高さ56pt固定・行全体タップ）
+    html+='<div class="field-row" onclick="triggerHaptic(false);toggleFieldExpand('+i+')" style="display:flex;align-items:center;gap:8px;height:56px;padding:0 2px;cursor:pointer;">'
+      +'<div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;">'
+      +'<span style="min-width:0;font-size:15px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</span>'
+      +wbIcon
+      +'</div>'
+      // 右側：固定幅エリア（進捗%右揃え＋進捗バー）
+      +'<div style="width:96px;flex-shrink:0;display:flex;align-items:center;gap:9px;">'
+      +'<span id="fpct-'+i+'" style="width:38px;text-align:right;font-size:14px;font-weight:600;color:var(--text2);font-variant-numeric:tabular-nums;">'+fp+'<span style="font-size:10px;color:var(--text3);font-weight:400;">%</span></span>'
+      +'<div style="flex:1;height:2.5px;border-radius:2px;background:rgba(74,62,54,0.08);overflow:hidden;"><div class="field-bar-fill" id="fbar-'+i+'" style="height:100%;width:'+fp+'%;border-radius:2px;background:'+(barFull?'var(--accent)':'var(--accent-mid)')+';"></div></div>'
+      +'</div>'
+      +'<svg class="field-chev'+(staticOpen?' open':'')+'" data-fi="'+i+'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.6;"><polyline points="9 18 15 12 9 6"/></svg>'
+      +'</div>';
+    // インセット区切り線（左はテキスト開始位置に合わせる）
+    if(i<data.fields.length-1)html+='<div style="height:0.5px;background:var(--border);margin-left:2px;"></div>';
+    // 展開領域（常時DOM・grid-rowsで高さアニメ）
     html+='<div class="field-acc'+(staticOpen?' open':'')+'" id="field-acc-'+i+'"><div class="field-acc-inner"><div class="field-chips" style="padding:8px 0 4px;"><div style="display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 0;">';
     wbs.forEach(function(w,j){
+      if(w.archivedAt)return; // アーカイブ済みは非表示
       var sel=(i===curF2&&j===curW2);
       var wlap=wbLap(w);
-      html+='<button onclick="selectWorkbook('+i+','+j+')" style="'
+      html+='<button onclick="event.stopPropagation();selectWorkbook('+i+','+j+')" style="'
         +'flex-shrink:0;min-height:38px;padding:5px 13px;border-radius:9px;cursor:pointer;font-family:inherit;text-align:left;'
         +'border:0.5px solid '+(sel?'transparent':'var(--border)')+';'
         +'background:'+(sel?'rgba(74,62,54,0.06)':'transparent')+';'
@@ -974,6 +1258,7 @@ function renderCounter(){
     });
     html+='</div></div></div></div>';
   });
+  }
   html+='</div>';
 
   // ════ ④ 最近の記録（折りたたみ・初期閉じ）════
@@ -1087,6 +1372,7 @@ function openFieldSheet(i){
     +'<div style="font-size:12px;color:var(--text3);margin-bottom:2px;">'+f.name+'</div>'
     +'<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:14px;">教材を選ぶ</div>';
   wbs.forEach(function(w,j){
+    if(w.archivedAt)return; // アーカイブ済みは非表示
     var wlap=wbLap(w);var wsol=wbSolved(w);var wtot=w.total||0;
     var wInLap=wtot>0?(wsol%wtot):wsol;if(wtot>0&&wInLap===0&&wsol>0)wInLap=wtot;
     var wPct=wtot>0?Math.round(wInLap/wtot*100):0;
@@ -1255,23 +1541,35 @@ function incrementWb(i,j,delta){
   data.lastActiveField=i;
   data.lastActiveWb={f:i,w:j};
 
-  triggerHaptic(delta>0);
+  triggerHaptic(false);
 
-  // 表示更新：今日・累計・リング
+  // 表示更新：今日・累計・リング（周回内進捗はroundStartSolved基準）
   var wbSol=wbSolved(w);
   var wbTod=wbTodayCount(w);
   var wbTot=w.total||0;
-  var wbInLap=wbTot>0?(wbSol%wbTot):wbSol;
-  if(wbTot>0&&wbInLap===0&&wbSol>0)wbInLap=wbTot;
-  var wbLapPct=wbTot>0?Math.round(wbInLap/wbTot*100):0;
+  var wbInLap=wbInRound(w);
+  var wbLapPct=wbTot>0?Math.min(100,Math.round(wbInLap/wbTot*100)):0;
 
   if(isMain){
     var mBtn=document.getElementById(delta>0?'main-plus':'main-minus');
     var mToday=document.getElementById('main-today');
     var mNum=document.getElementById('main-num');
     var mInlap=document.getElementById('main-inlap');
-    if(mBtn){mBtn.classList.remove('pop','pop-minus');void mBtn.offsetWidth;mBtn.classList.add(delta>0?'pop':'pop-minus');}
-    if(mToday){mToday.textContent=wbTod;mToday.classList.remove('bump','bump-minus');void mToday.offsetWidth;mToday.classList.add(delta>0?'bump':'bump-minus');}
+    if(mToday){
+      var oldVal=mToday.textContent;
+      if(oldVal!==String(wbTod)){
+        var wrap=mToday.parentNode;// inline-flex（数字＋問）
+        wrap.style.position='relative';
+        var ghost=document.createElement('span');
+        ghost.textContent=oldVal;
+        ghost.style.cssText='position:absolute;left:0;top:0;width:'+mToday.offsetWidth+'px;font-size:78px;font-weight:700;color:var(--text);line-height:.9;letter-spacing:-.03em;pointer-events:none;';
+        ghost.className='num-out';
+        wrap.insertBefore(ghost,wrap.firstChild);
+        mToday.textContent=wbTod;
+        mToday.classList.remove('num-in');void mToday.offsetWidth;mToday.classList.add('num-in');
+        setTimeout(function(){if(ghost.parentNode)ghost.parentNode.removeChild(ghost);},220);
+      }else{mToday.textContent=wbTod;}
+    }
     if(mNum)mNum.textContent=wbSol;
     if(mInlap)mInlap.textContent=wbInLap;
     // リング更新
@@ -1281,12 +1579,17 @@ function incrementWb(i,j,delta){
     if(ringText)ringText.textContent=wbLapPct+'%';
   }
 
-  // 分野一覧のアニメーション（分野合計を表示）
-  var newVal=todayCount(f);
-  var btn=document.getElementById((delta>0?'plus-':'minus-')+i);
-  var num=document.getElementById('cntnum-'+i);
-  if(btn){btn.classList.remove('pop','pop-minus');void btn.offsetWidth;btn.classList.add(delta>0?'pop':'pop-minus');}
-  if(num){num.textContent=newVal;num.classList.remove('bump','bump-minus');void num.offsetWidth;num.classList.add(delta>0?'bump':'bump-minus');}
+  // 分野行の進捗%・バー更新
+  var fpNew=progress(f);
+  var fpctEl=document.getElementById('fpct-'+i);
+  var fbarEl=document.getElementById('fbar-'+i);
+  if(fpctEl)fpctEl.innerHTML=fpNew+'<span style="font-size:10px;color:var(--text3);font-weight:400;">%</span>';
+  if(fbarEl){
+    var wasFull=(fbarEl.style.width==='100%');
+    fbarEl.style.width=fpNew+'%';
+    if(fpNew>=100){fbarEl.style.background='var(--accent)';if(!wasFull)triggerHaptic(true);}
+    else fbarEl.style.background='var(--accent-mid)';
+  }
 
   save();
   updateHeaderStreak();
@@ -1296,6 +1599,57 @@ function incrementWb(i,j,delta){
     clearTimeout(window._mainSwitchTimer);
     window._mainSwitchTimer=setTimeout(function(){renderCounter();},400);
   }
+
+  // 目標到達：確認シートを表示（＋で到達した時のみ・多重表示防止）
+  if(delta>0&&wbTot>0&&wbInRound(w)>=wbTot&&!window._roundSheetOpen){
+    window._roundSheetOpen=true;
+    setTimeout(function(){showRoundCompleteSheet(i,j);},350);
+  }
+}
+
+// 周回完了の確認Bottom Sheet
+function showRoundCompleteSheet(fi,wj){
+  var f=data.fields[fi];if(!f)return;
+  var wbs=fieldWorkbooks(f);var w=wbs[wj];if(!w)return;
+  var doneCount=wbInRound(w);
+  var html='<div class="day-modal-bg" onclick="dismissRoundSheet()">'
+    +'<div class="day-modal" onclick="event.stopPropagation()" style="text-align:center;">'
+    +'<div class="day-modal-handle"></div>'
+    +'<div style="width:56px;height:56px;border-radius:50%;margin:6px auto 14px;display:flex;align-items:center;justify-content:center;background:var(--accent-light);">'
+    +'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+    +'</div>'
+    +'<div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px;">目標数に到達しました</div>'
+    +'<div style="font-size:13px;color:var(--text2);margin-bottom:20px;">「'+w.name+'」を'+doneCount+'問解きました。<br>この周を完了しますか？</div>'
+    +'<button onclick="confirmRoundComplete('+fi+','+wj+')" style="width:100%;padding:13px;border:none;border-radius:var(--radius-lg);background:var(--accent);color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:8px;box-shadow:0 3px 10px rgba(192,122,90,0.22);">この周を完了する</button>'
+    +'<button onclick="dismissRoundSheet()" class="day-modal-close">まだ完了しない</button>'
+    +'</div></div>';
+  var el=document.getElementById('day-modal');
+  el.innerHTML=html;el.style.display='block';
+}
+function dismissRoundSheet(){
+  var el=document.getElementById('day-modal');
+  if(el){el.style.display='none';el.innerHTML='';}
+  window._roundSheetOpen=false;
+}
+// 周回完了：次周へ進める（currentRound+1・開始点更新・次マイルストーンの目標日を自動参照）
+// 手動で次周へ進める（設定画面から・未到達でも可）
+function manualAdvanceRound(fi,wj){
+  var f=data.fields[fi];if(!f)return;
+  var wbs=fieldWorkbooks(f);var w=wbs[wj];if(!w)return;
+  w.currentRound=(w.currentRound||wbLap(w))+1;
+  w.roundStartSolved=wbSolved(w);
+  save();
+  renderSettings();
+}
+function confirmRoundComplete(fi,wj){
+  var f=data.fields[fi];if(!f)return;
+  var wbs=fieldWorkbooks(f);var w=wbs[wj];if(!w)return;
+  w.currentRound=(w.currentRound||wbLap(w))+1;
+  w.roundStartSolved=wbSolved(w);
+  triggerHaptic(true);
+  save();
+  dismissRoundSheet();
+  renderCounter();
 }
 
 function updateStreakCard(streak){
@@ -1458,8 +1812,11 @@ function renderAchievements(){
   var unlocked=data.unlockedAchievements||[];
   var solvedQ=data.fields.reduce(function(a,f){return a+totalSolved(f);},0);
   var streak=calcStreak();
-  var now2=new Date();
-  if(achViewYear===null){achViewYear=now2.getFullYear();achViewMonth=now2.getMonth();}
+  var sd=studyDate(new Date());
+  var now2=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate(),23,59,59);
+  var goals=goalDateMap();
+  var msMap=milestoneDateMap();
+  if(achViewYear===null){achViewYear=sd.getFullYear();achViewMonth=sd.getMonth();}
   if(achSelectedDay===null)achSelectedDay=todayStr();
   var yr=achViewYear,mo=achViewMonth;
   var daysInMonth=new Date(yr,mo+1,0).getDate();
@@ -1489,16 +1846,15 @@ function renderAchievements(){
   html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:2px;">'+DOWS.map(function(d){return '<div style="font-size:10px;color:var(--text3);text-align:center;">'+d+'</div>';}).join('')+'</div>';
   // マス（HM_DOT=true:ドット版／false:四角セル版）
   var HM_DOT=true;
-  // ドットのサイズ＆色（指定値固定）
+  // ドットのサイズ＆色（5段階・差を明確に）
   function achDotSpec(c){
-    if(c===0)return{sz:12,col:HM_COLORS[0]};
-    if(c<=9)return{sz:14,col:HM_COLORS[1]};
-    if(c<=29)return{sz:16,col:HM_COLORS[2]};
-    if(c<=49)return{sz:18,col:HM_COLORS[3]};
-    return{sz:20,col:HM_COLORS[4]};
+    if(c===0)return{sz:6,col:'#ddd4cb'};      // 未学習
+    if(c<=9)return{sz:9,col:HM_COLORS[1]};    // 少量
+    if(c<=29)return{sz:12,col:HM_COLORS[2]};  // 中量
+    if(c<=59)return{sz:15,col:HM_COLORS[3]};  // 多量
+    return{sz:18,col:HM_COLORS[4]};           // 大量
   }
-  var BAND_LINE='rgba(178,74,46,0.35)';// 最濃色ベースの薄トーン（枠線）
-  var BAND_FILL='rgba(178,74,46,0.06)';// 帯のごく薄い塗り
+  var LINK_LINE='rgba(178,74,46,0.35)';// 連続日をつなぐ細いライン
   function dayCnt(dd){
     if(dd<1||dd>daysInMonth)return 0;
     var k=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
@@ -1517,29 +1873,20 @@ function renderAchievements(){
     var op=isFuture?'0.3':'1';
     if(HM_DOT){
       var spec=achDotSpec(cnt);
-      // 連続学習の帯（同じ週内の水平連続のみ）
-      var hasPrev=cnt>0&&dow>0&&dayCnt(d-1)>0;
+      // 連続学習：右隣（同じ週内）も学習日なら細いラインで接続
       var hasNext=cnt>0&&dow<6&&dayCnt(d+1)>0;
-      var band='';
-      if(hasPrev||hasNext){
-        var bandStyle='position:absolute;top:50%;transform:translateY(-50%);height:26px;background:'+BAND_FILL+';border-top:1.5px solid '+BAND_LINE+';border-bottom:1.5px solid '+BAND_LINE+';';
-        if(!hasPrev&&hasNext){// 開始
-          bandStyle+='left:2px;right:-4px;border-left:1.5px solid '+BAND_LINE+';border-radius:13px 0 0 13px;';
-        }else if(hasPrev&&!hasNext){// 終了
-          bandStyle+='left:-4px;right:2px;border-right:1.5px solid '+BAND_LINE+';border-radius:0 13px 13px 0;';
-        }else{// 中間
-          bandStyle+='left:-4px;right:-4px;';
-        }
-        band='<span style="'+bandStyle+'"></span>';
-      }
-      // 選択リング：ドット外側に約2pxの余白＋2pxリング
+      var link=hasNext?'<span style="position:absolute;top:50%;left:50%;width:calc(100% + 4px);height:1.5px;background:'+LINK_LINE+';transform:translateY(-50%);"></span>':'';
+      // 選択リング：ドット外側に余白＋2pxリング
       var dotExtra=isSel?'box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent);':'';
-      html+='<div onclick="achSelectDay(\''+key+'\')" style="aspect-ratio:1;opacity:'+op+';cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">'
-        +'<span style="font-size:9px;line-height:1;color:'+(isSel||isToday?'var(--accent)':'var(--text3)')+';font-weight:'+(isSel||isToday?'700':'400')+';">'+d+'</span>'
-        +'<span style="position:relative;width:100%;height:20px;display:flex;align-items:center;justify-content:center;">'
-        +band
+      var isGoal=!!goals[key];
+      var hasMs=!!msMap[key];
+      html+='<div onclick="achSelectDay(\''+key+'\')" style="aspect-ratio:1;opacity:'+op+';cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">'
+        +'<span style="font-size:9px;line-height:1;color:'+(isSel||isToday||isGoal?'var(--accent)':'var(--text3)')+';font-weight:'+(isSel||isToday||isGoal?'700':'400')+';'+(isGoal?'border-bottom:1.5px solid var(--accent-mid);padding-bottom:1px;':'')+'">'+d+'</span>'
+        +'<span style="position:relative;width:100%;height:18px;display:flex;align-items:center;justify-content:center;">'
+        +link
         +'<span style="position:relative;width:'+spec.sz+'px;height:'+spec.sz+'px;border-radius:50%;background:'+spec.col+';'+dotExtra+'flex-shrink:0;"></span>'
         +'</span>'
+        +(hasMs?'<span style="width:3px;height:3px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>':'<span style="height:3px;"></span>')
         +'</div>';
     }else{
       var col=isFuture?HM_COLORS[0]:hmColorForCount(cnt);
@@ -1550,93 +1897,233 @@ function renderAchievements(){
     }
   }
   html+='</div>';
-  // 凡例（色・サイズ・閾値）
-  if(HM_DOT){
-    html+='<div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;margin-top:8px;padding-bottom:4px;">'
-      +'<span style="font-size:9px;color:var(--text3);">0</span>';
-    [[12,0],[14,1],[16,2],[18,3],[20,4]].forEach(function(p){
-      html+='<span style="width:'+(p[0]*0.7)+'px;height:'+(p[0]*0.7)+'px;border-radius:50%;background:'+HM_COLORS[p[1]]+';flex-shrink:0;"></span>';
-    });
-    html+='<span style="font-size:9px;color:var(--text3);">50+</span></div>';
-  }
   html+='</div>';
 
-  // ════ 2. 選択日の詳細 ════
-  var selObj=new Date(achSelectedDay);
-  var selLabel=achSelectedDay.split('-').map(function(x,ix){return ix===0?x:String(parseInt(x)).padStart(2,'0');}).join('/');
+  // ════ 2. 選択日の詳細（日付＋総数＋分野別テキスト）════
   var selTotal=0;
   var breakdown=data.fields.map(function(f){var c=fieldCountForDate(f,achSelectedDay);selTotal+=c;return{name:f.name,count:c};}).filter(function(b){return b.count>0;});
   breakdown.sort(function(a,b){return b.count-a.count;});
-  html+='<div style="margin:0 0 12px;padding:0 2px;">';
-  // 上段：学習数（大）＋日付（下）／右に分野数
-  html+='<div>'
-    +'<div style="font-size:36px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-.02em;">'+selTotal+'<span style="font-size:16px;color:var(--text3);font-weight:400;margin-left:2px;">問</span></div>'
-    +'<div style="font-size:12px;color:var(--text3);margin-top:3px;">'+selLabel+(breakdown.length?' ・ '+breakdown.length+'分野':'')+'</div>'
-    +'</div>';
+  var selParts=achSelectedDay.split('-');
+  var selDateObj=new Date(parseInt(selParts[0]),parseInt(selParts[1])-1,parseInt(selParts[2]));
+  var selLabel=parseInt(selParts[0])+'年'+parseInt(selParts[1])+'月'+parseInt(selParts[2])+'日（'+DOWS[selDateObj.getDay()]+'）';
+  html+='<div style="margin:0 0 10px;padding:0 2px;">';
+  html+='<div style="font-size:12px;color:var(--text3);line-height:1;">'+selLabel+'</div>';
+  // この日が目標日の問題集
+  if(goals[achSelectedDay]){
+    var gl=goals[achSelectedDay].map(function(g){return (g.section?g.section+'：':'')+g.name;}).join(' ・ ');
+    html+='<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--accent);margin-top:5px;">'
+      +'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>'
+      +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">目標日：'+gl+'</span></div>';
+  }
+  // この日のマイルストーン
+  var dayMs=milestoneDateMap()[achSelectedDay]||[];
+  if(dayMs.length){
+    dayMs.forEach(function(ms){
+      var mt=MILESTONE_TYPES[ms.type]||MILESTONE_TYPES.free;
+      html+='<div onclick="openMilestoneSheet(\''+ms.id+'\')" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);margin-top:4px;cursor:pointer;">'
+        +'<span style="color:var(--accent);display:flex;flex-shrink:0;">'+mt.icon+'</span>'
+        +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(ms.title||mt.label)+'</span></div>';
+    });
+  }
+  html+='<div onclick="openMilestoneSheet(null)" style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text3);margin-top:5px;cursor:pointer;">'
+    +'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>予定を追加</div>';
+  html+='<div style="font-size:32px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-.02em;margin-top:4px;">'+selTotal+'<span style="font-size:15px;color:var(--text3);font-weight:400;margin-left:2px;">問</span></div>';
   if(breakdown.length){
-    html+='<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:2px 14px;margin-top:10px;">';
-    breakdown.forEach(function(b,idx){
-      html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;'+(idx>0?'border-top:0.5px solid var(--border);':'')+'">'
-        +'<span style="font-size:14px;color:var(--text);">'+b.name+'</span>'
-        +'<span style="font-size:14px;font-weight:600;color:var(--text2);">'+b.count+'<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:1px;">問</span></span>'
+    html+='<div style="margin-top:7px;">';
+    breakdown.forEach(function(b){
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;">'
+        +'<span style="font-size:13px;color:var(--text2);">'+b.name+'</span>'
+        +'<span style="font-size:13px;font-weight:600;color:var(--text);">'+b.count+'<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:1px;">問</span></span>'
         +'</div>';
     });
     html+='</div>';
   }else{
-    html+='<div style="font-size:13px;color:var(--text3);margin-top:4px;">この日の記録はありません</div>';
+    html+='<div style="font-size:12px;color:var(--text3);margin-top:6px;">この日の記録はありません</div>';
   }
   html+='</div>';
 
-  // ════ 3. 統計（今月・累計の2カード）════
+  // ════ 3. 統計（横並びテキスト・カードなし）════
   var monthTotal=0;
   var mPrefix=yr+'-'+String(mo+1).padStart(2,'0');
   Object.keys(counts).forEach(function(k){if(k.indexOf(mPrefix)===0)monthTotal+=counts[k];});
-  html+='<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:14px;padding:3px 16px;margin:0 0 14px;">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">'
-    +'<span style="font-size:13px;color:var(--text2);">今月</span>'
-    +'<span style="font-size:15px;font-weight:600;color:var(--text);">'+monthTotal.toLocaleString()+'<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:1px;">問</span></span>'
-    +'</div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">'
-    +'<span style="font-size:13px;color:var(--text2);">累計</span>'
-    +'<span style="font-size:15px;font-weight:600;color:var(--accent);">'+solvedQ.toLocaleString()+'<span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:1px;">問</span></span>'
-    +'</div>'
+  html+='<div style="font-size:13px;color:var(--text2);margin:0 0 16px;padding:0 2px;">'
+    +'今月 <span style="font-weight:600;color:var(--text);">'+monthTotal.toLocaleString()+'</span>'
+    +'<span style="color:var(--border2);margin:0 8px;">｜</span>'
+    +'累計 <span style="font-weight:600;color:var(--accent);">'+solvedQ.toLocaleString()+'</span>'
     +'</div>';
 
   // ════ 4. 達成（2列グリッド）════
-  // 最も達成が近い実績
-  var achNext=null;
+  // 達成間近リスト（優先：残り1〜3日 → 残り問数が少ない → その他）
+  var nearList=[];
   ACHIEVEMENTS.forEach(function(a){
     if(unlocked.indexOf(a.id)!==-1)return;
     if(!a.remain)return;
     var r=a.remain(stats);
-    if(r>0&&(achNext===null||r<achNext.remain))achNext={ach:a,remain:r};
+    if(r>0)nearList.push({ach:a,remain:r,pri:(a.unit==='日'&&r<=3)?0:(a.unit==='問'?1:2)});
   });
-  html+='<div style="margin-bottom:10px;">'
-    +'<span class="sec-label" style="padding:0;margin:0;">達成</span>'
-    +(achNext?'<div style="font-size:12px;color:var(--text3);margin-top:7px;">次は<span style="color:var(--text2);font-weight:500;">'+achNext.ach.name+'</span>まであと'+achNext.remain+achNext.ach.unit+'</div>':'')
+  nearList.sort(function(a,b){return a.pri-b.pri||a.remain-b.remain;});
+  var nearTop=nearList.slice(0,5);
+  var nearIds=nearTop.map(function(x){return x.ach.id;});
+  var achUnlockedCount=ACHIEVEMENTS.filter(function(a){return unlocked.indexOf(a.id)!==-1;}).length;
+
+  // 表示候補：達成済み3個＋達成間近3個＝固定6個（シークレット未達成は除外）
+  var doneList=ACHIEVEMENTS.filter(function(a){return unlocked.indexOf(a.id)!==-1;});
+  var shown=[];
+  doneList.slice(0,3).forEach(function(a){shown.push({a:a,done:true});});
+  nearTop.forEach(function(nx){if(shown.length<6&&!nx.ach.secret)shown.push({a:nx.ach,done:false});});
+  ACHIEVEMENTS.forEach(function(a){
+    if(shown.length>=6)return;
+    if(a.secret)return;
+    if(shown.some(function(x){return x.a.id===a.id;}))return;
+    shown.push({a:a,done:unlocked.indexOf(a.id)!==-1});
+  });
+
+  // ヘッダー：達成 2/20 ＋ すべて見る
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+    +'<span style="font-size:13px;font-weight:600;color:var(--text2);">達成 <span style="color:var(--text3);font-weight:400;">'+achUnlockedCount+'/'+ACHIEVEMENTS.length+'</span></span>'
+    +'<span onclick="openAchListModal()" style="display:inline-flex;align-items:center;gap:1px;font-size:12px;color:var(--accent);cursor:pointer;">すべて見る<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>'
     +'</div>';
-  var achList=achShowAll?ACHIEVEMENTS:ACHIEVEMENTS.slice(0,14);
-  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;justify-items:center;">';
-  achList.forEach(function(ach){
-    var isU=unlocked.indexOf(ach.id)!==-1;
-    var icon=ACH_ICONS[ach.id]||ACH_CAT_ICONS[ach.cat];
-    html+='<div onclick="openAchModal(\''+ach.id+'\')" style="'
-      +'width:38px;height:38px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;'
-      +'background:'+(isU?'var(--accent)':'rgba(74,62,54,0.05)')+';'
-      +(isU?'box-shadow:0 1px 4px rgba(192,122,90,0.25);':'')+'">'
-      +'<span style="color:'+(isU?'#fff':'var(--text3)')+';display:flex;transform:scale(.72);">'+icon+'</span>'
+  // 固定6個（アイコンのみ・横スクロールなし）
+  html+='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;justify-items:center;">';
+  shown.forEach(function(x){
+    var icon=achIcon(x.a);
+    html+='<div onclick="openAchModal(\''+x.a.id+'\')" style="width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;'
+      +'background:'+(x.done?'var(--accent)':'rgba(74,62,54,0.05)')+';'
+      +(x.done?'box-shadow:0 1px 4px rgba(192,122,90,0.25);':'')+'">'
+      +'<span style="color:'+(x.done?'#fff':'var(--text3)')+';display:flex;transform:scale(.85);">'+icon+'</span>'
       +'</div>';
   });
   html+='</div>';
-  if(ACHIEVEMENTS.length>14){
-    html+='<div style="text-align:center;margin-top:10px;"><button onclick="achShowAll=!achShowAll;renderAchievements()" style="font-size:12px;color:var(--accent);background:transparent;border:none;cursor:pointer;font-family:inherit;padding:4px 8px;">'+(achShowAll?'閉じる':'すべて見る')+'</button></div>';
-  }
 
   html+='</div></div>';
   document.getElementById('tab-achievements').innerHTML=html;
 }
+// 全実績モーダル（タブ：達成済み／未達成／シークレット）
+var ACH_CATS=[
+  {key:'continue',label:'継続'},
+  {key:'count',label:'問題数'},
+  {key:'daily',label:'1日学習'},
+  {key:'field',label:'分野'},
+  {key:'workbook',label:'問題集'},
+  {key:'special',label:'特別'},
+  {key:'secret',label:'シークレット'}
+];
+function achProgressValue(a,stats){
+  // 0〜1の進捗（remainベース）
+  if(!a.remain)return 0;
+  var r=a.remain(stats);
+  var cur,target;
+  if(a.unit==='日'){cur=stats.streak;}
+  else if(a.unit==='問'){cur=(a.cat==='daily')?stats.maxDay:stats.totalSolved;}
+  else if(a.unit==='周'){cur=(a.cat==='field')?stats.allFieldsLap:stats.maxLap;}
+  else if(a.unit==='個'){cur=stats.unlockedNum;}
+  else{cur=Math.max(0,(r<=0?1:0));}
+  target=cur+Math.max(0,r);
+  if(target<=0)return 0;
+  return Math.max(0,Math.min(1,cur/target));
+}
+function achCurTarget(a,stats){
+  if(!a.remain)return null;
+  var r=a.remain(stats);var cur;
+  if(a.unit==='日')cur=stats.streak;
+  else if(a.unit==='問')cur=(a.cat==='daily')?stats.maxDay:stats.totalSolved;
+  else if(a.unit==='周')cur=(a.cat==='field')?stats.allFieldsLap:stats.maxLap;
+  else if(a.unit==='個')cur=stats.unlockedNum;
+  else cur=0;
+  return{cur:cur,target:cur+Math.max(0,r),unit:a.unit,remain:r};
+}
+function progBar(ratio){
+  return '<div style="height:4px;border-radius:2px;background:rgba(74,62,54,0.08);overflow:hidden;"><div style="height:100%;width:'+Math.round(ratio*100)+'%;background:var(--accent-mid);border-radius:2px;"></div></div>';
+}
+// 実績一覧トップ（カテゴリごとの進捗）
+function openAchListModal(){
+  var unlocked=data.unlockedAchievements||[];
+  var body='';
+  ACH_CATS.forEach(function(c){
+    var items=ACHIEVEMENTS.filter(function(a){return a.cat===c.key;});
+    if(!items.length)return;
+    var done=items.filter(function(a){return unlocked.indexOf(a.id)!==-1;}).length;
+    var ratio=items.length?done/items.length:0;
+    body+='<div onclick="openAchCatModal(\''+c.key+'\')" style="cursor:pointer;padding:11px 0;'+'">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">'
+      +'<span style="font-size:14px;font-weight:500;color:var(--text);">'+c.label+'</span>'
+      +'<span style="display:inline-flex;align-items:center;gap:3px;font-size:12px;color:var(--text3);">'+done+'/'+items.length+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>'
+      +'</div>'+progBar(ratio)+'</div>';
+  });
+  var html='<div class="day-modal-bg" onclick="closeAchModal()">'
+    +'<div class="day-modal" onclick="event.stopPropagation()">'
+    +'<div class="day-modal-handle"></div>'
+    +'<div style="font-size:17px;font-weight:700;color:var(--text);margin:4px 0 8px;">実績</div>'
+    +body
+    +'</div></div>';
+  var el=document.getElementById('day-modal');
+  el.innerHTML=html;el.style.display='block';
+}
+var achCatDoneOpen=false;
+// カテゴリ詳細（未達成先・達成済み折りたたみ）
+function openAchCatModal(cat){
+  if(cat==='__toggle'){achCatDoneOpen=!achCatDoneOpen;cat=_achCatCur;}
+  else{_achCatCur=cat;achCatDoneOpen=false;}
+  var unlocked=data.unlockedAchievements||[];
+  var stats=calcStats();
+  var label=(ACH_CATS.filter(function(c){return c.key===cat;})[0]||{}).label||'実績';
+  var items=ACHIEVEMENTS.filter(function(a){return a.cat===cat;});
+  var isSecret=(cat==='secret');
+  var lockedItems=items.filter(function(a){return unlocked.indexOf(a.id)===-1;});
+  var doneItems=items.filter(function(a){return unlocked.indexOf(a.id)!==-1;});
+  function iconCircle(a,done){
+    return '<div style="width:38px;height:38px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:'+(done?'var(--accent)':'rgba(74,62,54,0.05)')+';">'
+      +'<span style="color:'+(done?'#fff':'var(--text3)')+';display:flex;transform:scale(.72);">'+achIcon(a)+'</span></div>';
+  }
+  var body='';
+  // 未達成（先に表示）
+  lockedItems.forEach(function(a,idx){
+    if(isSecret){
+      body+='<div style="display:flex;align-items:center;gap:11px;padding:10px 0;'+(idx>0?'border-top:0.5px solid var(--border);':'')+'">'
+        +'<div style="width:38px;height:38px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(74,62,54,0.05);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>'
+        +'<div style="flex:1;font-size:14px;color:var(--text3);">？？？？？</div></div>';
+    }else{
+      var ct=achCurTarget(a,stats);
+      var ratio=achProgressValue(a,stats);
+      body+='<div onclick="openAchModal(\''+a.id+'\')" style="display:flex;align-items:center;gap:11px;padding:10px 0;cursor:pointer;'+(idx>0?'border-top:0.5px solid var(--border);':'')+'">'
+        +iconCircle(a,false)
+        +'<div style="flex:1;min-width:0;">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;"><span style="font-size:14px;font-weight:500;color:var(--text);">'+a.name+'</span>'
+        +(ct?'<span style="font-size:11px;color:var(--text3);">'+ct.cur.toLocaleString()+' / '+ct.target.toLocaleString()+'</span>':'')+'</div>'
+        +progBar(ratio)
+        +'</div></div>';
+    }
+  });
+  // 達成済み（折りたたみ）
+  if(doneItems.length){
+    body+='<div onclick="openAchCatModal(\'__toggle\')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:12px 0 8px;margin-top:6px;border-top:0.5px solid var(--border);">'
+      +'<span style="font-size:13px;font-weight:600;color:var(--text2);">達成済み '+doneItems.length+'件</span>'
+      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;'+(achCatDoneOpen?'transform:rotate(180deg);':'')+'"><polyline points="6 9 12 15 18 9"/></svg>'
+      +'</div>';
+    if(achCatDoneOpen){
+      doneItems.forEach(function(a){
+        body+='<div onclick="openAchModal(\''+a.id+'\')" style="display:flex;align-items:center;gap:11px;padding:9px 0;cursor:pointer;">'
+          +iconCircle(a,true)
+          +'<span style="flex:1;font-size:14px;font-weight:500;color:var(--accent);">'+a.name+'</span>'
+          +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+          +'</div>';
+      });
+    }
+  }
+  if(!lockedItems.length&&!doneItems.length)body='<div style="font-size:13px;color:var(--text3);padding:16px 0;">実績がありません</div>';
+  var html='<div class="day-modal-bg" onclick="closeAchModal()">'
+    +'<div class="day-modal" onclick="event.stopPropagation()">'
+    +'<div class="day-modal-handle"></div>'
+    +'<div onclick="openAchListModal()" style="display:flex;align-items:center;gap:3px;color:var(--accent);cursor:pointer;font-size:14px;margin-bottom:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>実績</div>'
+    +'<div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">'+label+'</div>'
+    +body
+    +'</div></div>';
+  var el=document.getElementById('day-modal');
+  el.innerHTML=html;el.style.display='block';
+}
+var _achCatCur='continue';
 function achPrevMonth(){achViewMonth--;if(achViewMonth<0){achViewMonth=11;achViewYear--;}renderAchievements();}
-function achNextMonth(){var n=new Date();achViewMonth++;if(achViewMonth>11){achViewMonth=0;achViewYear++;}if(achViewYear>n.getFullYear()||(achViewYear===n.getFullYear()&&achViewMonth>n.getMonth())){achViewMonth=n.getMonth();achViewYear=n.getFullYear();}renderAchievements();}
+function achNextMonth(){var n=studyDate(new Date());achViewMonth++;if(achViewMonth>11){achViewMonth=0;achViewYear++;}if(achViewYear>n.getFullYear()||(achViewYear===n.getFullYear()&&achViewMonth>n.getMonth())){achViewMonth=n.getMonth();achViewYear=n.getFullYear();}renderAchievements();}
 function achSelectDay(key){achSelectedDay=key;renderAchievements();}
 
 // バッジ詳細モーダル
@@ -1644,23 +2131,32 @@ function openAchModal(id){
   var ach=null;ACHIEVEMENTS.forEach(function(a){if(a.id===id)ach=a;});
   if(!ach)return;
   var isU=(data.unlockedAchievements||[]).indexOf(id)!==-1;
+  var hidden=(ach.secret&&!isU);// シークレット未達成は内容非公開
   var dateStr=(data.achUnlockDates||{})[id];
   var dateLabel='';
   if(dateStr){var p=dateStr.split('-');dateLabel=p[0]+'.'+parseInt(p[1])+'.'+parseInt(p[2]);}
+  var dispName=hidden?'シークレット実績':ach.name;
+  var dispDesc=hidden?'達成すると公開されます':ach.desc;
   var html='<div class="day-modal-bg" onclick="closeAchModal()">'
     +'<div class="day-modal" onclick="event.stopPropagation()" style="text-align:center;">'
     +'<div class="day-modal-handle"></div>'
     +'<div style="width:72px;height:72px;border-radius:50%;margin:8px auto 14px;display:flex;align-items:center;justify-content:center;'+(isU?'background:var(--accent);box-shadow:0 3px 12px rgba(192,122,90,0.3);':'background:var(--bg);border:0.5px solid var(--border);')+'">'
-    +'<span style="color:'+(isU?'#fff':'var(--text3)')+';transform:scale(1.3);display:flex;">'+(ACH_ICONS[id]||ACH_CAT_ICONS[ach.cat])+'</span>'
+    +'<span style="color:'+(isU?'#fff':'var(--text3)')+';transform:scale(1.3);display:flex;">'+(hidden?'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>':achIcon(ach))+'</span>'
     +'</div>'
-    +'<div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:6px;">'+ach.name+'</div>'
-    +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">'+ach.desc+'</div>'
+    +'<div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:6px;">'+dispName+'</div>'
+    +'<div style="font-size:13px;color:var(--text2);margin-bottom:16px;">'+dispDesc+'</div>'
     +(isU
       ?'<div style="font-size:11px;color:var(--text3);">獲得日</div><div style="font-size:14px;font-weight:600;color:var(--accent);margin-top:2px;">'+(dateLabel||'達成済み')+'</div>'
       :(function(){
-         var rTxt='';
-         if(ach.remain){var st=calcStats();var r=ach.remain(st);if(r>0)rTxt='あと'+r+ach.unit;}
-         return '<div style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);background:var(--bg);padding:6px 14px;border-radius:99px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'+(rTxt||'未獲得')+'</div>';
+         if(hidden)return '<div style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);background:var(--bg);padding:6px 14px;border-radius:99px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>達成すると公開</div>';
+         var st=calcStats();var ct=achCurTarget(ach,st);
+         if(ct){
+           var ratio=achProgressValue(ach,st);
+           return '<div style="margin:0 auto;max-width:200px;">'
+             +'<div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:6px;"><span>現在 '+ct.cur.toLocaleString()+' / '+ct.target.toLocaleString()+'</span><span style="color:var(--accent);font-weight:600;">あと'+ct.remain+ct.unit+'</span></div>'
+             +progBar(ratio)+'</div>';
+         }
+         return '<div style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);background:var(--bg);padding:6px 14px;border-radius:99px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>未獲得</div>';
        })())
     +'<button class="day-modal-close" onclick="closeAchModal()">閉じる</button></div></div>';
   var el=document.getElementById('day-modal');
@@ -1679,37 +2175,72 @@ function renderSettings(){
   if(settingsView==='data'){renderSettingsData();return;}
   if(settingsView==='about'){renderSettingsAbout();return;}
   // ── 概要トップ ──
-  var html='<div class="tab-pane"><div style="padding:0 16px;">';
+  var html='<div class="tab-pane set-fade"><div style="padding:0 16px;">';
+  html+='<div style="font-size:28px;font-weight:700;color:var(--text);padding:4px 2px 4px;letter-spacing:-.02em;">設定</div>';
   if(currentUser){var name=currentUser.user_metadata&&currentUser.user_metadata.name?currentUser.user_metadata.name:'ログイン中';html+='<div class="logout-card"><span class="logout-user">☁ '+name+'</span><button class="logout-btn" onclick="doLogout()">ログアウト</button></div>';}
 
   var ex=activeExam();
-  var goalTxt='';
-  if(ex&&ex.goalDate){var g=new Date(ex.goalDate);g.setHours(0,0,0,0);var n=new Date();n.setHours(0,0,0,0);goalTxt='あと'+Math.max(0,Math.round((g-n)/864e5))+'日';}
-  var totalWbs=0;data.fields.forEach(function(f){totalWbs+=fieldWorkbooks(f).length;});
-  var chev='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>';
+  var totalWbs=0;data.fields.forEach(function(f){totalWbs+=activeWbCount(f);});
 
-  // 試験
-  html+='<div class="sec-label">試験</div>';
-  html+='<div onclick="settingsView=\'examList\';renderSettings()" style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;margin-bottom:22px;">'
-    +'<div style="flex:1;min-width:0;">'
-    +'<div style="font-size:15px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(ex&&ex.name?ex.name:'試験を設定')+'</div>'
-    +(goalTxt?'<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+goalTxt+'</div>':'')
-    +'</div>'+chev+'</div>';
+  // 現在の学習環境サマリー（カードなし）
+  html+='<div style="padding:6px 2px 18px;">'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:5px;">現在の学習環境</div>'
+    +'<div style="font-size:18px;font-weight:600;color:var(--text);line-height:1.25;">'+(ex&&ex.name?ex.name:'試験未設定')+'</div>'
+    +'<div style="font-size:13px;color:var(--text3);margin-top:2px;">'+data.fields.length+'分野・'+totalWbs+'冊</div>'
+    +'</div>';
 
-  // 分野
-  html+='<div class="sec-label">分野</div>';
-  html+='<div onclick="settingsView=\'fieldList\';renderSettings()" style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;margin-bottom:22px;">'
-    +'<span style="flex:1;font-size:15px;color:var(--text);">'+data.fields.length+'分野登録</span>'+chev+'</div>';
+  // 各セル：アイコン（固定幅）＋項目＋現在値＋chevron
+  var chev='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:.7;"><polyline points="9 18 15 12 9 6"/></svg>';
+  function cell(onclick,iconSvg,label,value,last){
+    return '<div class="set-cell" onclick="triggerHaptic(false);'+onclick+'" style="display:flex;align-items:center;gap:11px;padding:10px 14px;cursor:pointer;'+(last?'':'border-bottom:0.5px solid var(--border);')+'">'
+      +'<span style="width:22px;display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0;">'+iconSvg+'</span>'
+      +'<span style="font-size:15px;color:var(--text);flex-shrink:0;">'+label+'</span>'
+      +'<span style="flex:1;"></span>'
+      +(value?'<span style="font-size:14px;color:var(--text3);max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+value+'</span>':'')
+      +chev+'</div>';
+  }
+  // SF Symbols風アイコン（17pt相当・モノクロ）
+  var IC_exam='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 2.5 2.5 6 2.5s6-1.5 6-2.5v-5"/></svg>';
+  var IC_field='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
+  var IC_wb='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16M8 4v16"/><rect x="11" y="4" width="9" height="16" rx="1" transform="rotate(4 15 12)"/></svg>';
+  var IC_data='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="14" x2="6.01" y2="14"/></svg>';
+  var IC_info='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
 
-  // 問題集
-  html+='<div class="sec-label">問題集</div>';
-  html+='<div onclick="settingsView=\'wbList\';renderSettings()" style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;margin-bottom:26px;">'
-    +'<span style="flex:1;font-size:15px;color:var(--text);">'+totalWbs+'冊登録</span>'+chev+'</div>';
+  // 試験現在値：試験名
+  var examVal=ex&&ex.name?ex.name:'未設定';
+  // 分野現在値：最も学習量が多い分野 ＋ 他N件
+  var fieldVal='未登録';
+  if(data.fields.length){
+    var fs=data.fields.map(function(f){var t=0;fieldWorkbooks(f).forEach(function(w){t+=wbSolved(w);});return{name:f.name,t:t};}).sort(function(a,b){return b.t-a.t;});
+    fieldVal=fs[0].name+(data.fields.length>1?' 他'+(data.fields.length-1)+'件':'');
+  }
+  // 問題集現在値：最も使用している問題集 ＋ 他N冊
+  var wbVal='未登録';
+  var allWb=[];data.fields.forEach(function(f){fieldWorkbooks(f).forEach(function(w){if(!w.archivedAt)allWb.push(w);});});
+  if(allWb.length){
+    var ws=allWb.map(function(w){return{name:w.name,t:wbSolved(w)};}).sort(function(a,b){return b.t-a.t;});
+    wbVal=ws[0].name+(allWb.length>1?' 他'+(allWb.length-1)+'冊':'');
+  }
 
-  // その他（データ管理・アプリについて）
+  // 学習設定グループ
+  html+='<div class="sec-label">学習設定</div>';
+  html+='<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:26px;">'
+    +cell("openSettingsExam(data.activeExamId)",IC_exam,'試験',examVal,false)
+    +cell("settingsView='fieldList';renderSettings()",IC_field,'分野',fieldVal,false)
+    +cell("settingsView='wbList';renderSettings()",IC_wb,'問題集',wbVal,true)
+    +'</div>';
+
+  // その他グループ
+  html+='<div class="sec-label">その他</div>';
   html+='<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;">'
-    +'<div onclick="settingsView=\'data\';renderSettings()" style="display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;border-bottom:0.5px solid var(--border);"><span style="flex:1;font-size:15px;color:var(--text);">データ管理</span>'+chev+'</div>'
-    +'<div onclick="settingsView=\'about\';renderSettings()" style="display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;"><span style="flex:1;font-size:15px;color:var(--text);">アプリについて</span>'+chev+'</div>'
+    +cell("settingsView='data';renderSettings()",IC_data,'データ管理','',false)
+    +cell("settingsView='about';renderSettings()",IC_info,'アプリについて','',true)
+    +'</div>';
+
+  // フッター
+  html+='<div style="text-align:center;padding:28px 0 12px;">'
+    +'<div style="font-size:11px;color:var(--text3);">Study Tracker</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-top:1px;">Version 1.0.0</div>'
     +'</div>';
 
   html+='</div></div>';
@@ -1790,10 +2321,11 @@ function renderSettingsWbList(){
   }
   data.fields.forEach(function(f,fi){
     var wbs=fieldWorkbooks(f);
-    if(!wbs.length)return;
+    if(!wbs.some(isActiveWb))return;
     html+='<div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.03em;padding:8px 4px 4px;">'+f.name+'</div>';
     html+='<div class="settings-list">';
     wbs.forEach(function(w,j){
+      if(w.archivedAt)return; // アーカイブ済みは下の一覧へ
       html+='<div onclick="openSettingsWbFromList('+fi+','+j+')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:0.5px solid var(--border);cursor:pointer;">'
         +'<div style="flex:1;min-width:0;">'
         +'<div style="font-size:15px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+w.name+'</div>'
@@ -1804,9 +2336,37 @@ function renderSettingsWbList(){
     });
     html+='</div>';
   });
+  // ── アーカイブ済み（折りたたみ・復元／完全削除）──
+  var archived=[];
+  data.fields.forEach(function(f,fi){
+    fieldWorkbooks(f).forEach(function(w,j){
+      if(w.archivedAt)archived.push({w:w,fi:fi,j:j,fname:f.name});
+    });
+  });
+  if(archived.length){
+    html+='<div onclick="wbArchOpen=!wbArchOpen;renderSettings()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:16px 4px 8px;margin-top:8px;">'
+      +'<span style="font-size:13px;font-weight:600;color:var(--text2);">アーカイブ済み '+archived.length+'冊</span>'
+      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s;'+(wbArchOpen?'transform:rotate(180deg);':'')+'"><polyline points="6 9 12 15 18 9"/></svg>'
+      +'</div>';
+    if(wbArchOpen){
+      html+='<div class="settings-list">';
+      archived.forEach(function(it){
+        html+='<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:0.5px solid var(--border);">'
+          +'<div style="flex:1;min-width:0;">'
+          +'<div style="font-size:14px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+it.w.name+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);margin-top:1px;">'+it.fname+' ・ '+wbSolved(it.w)+'問の記録</div>'
+          +'</div>'
+          +'<span onclick="restoreWbFromList('+it.fi+','+it.j+')" style="font-size:12px;color:var(--accent);cursor:pointer;padding:6px 8px;flex-shrink:0;">復元</span>'
+          +'<span onclick="deleteWbPermanent('+it.fi+','+it.j+')" style="cursor:pointer;padding:6px 4px;display:flex;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c0584a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>'
+          +'</div>';
+      });
+      html+='</div>';
+    }
+  }
   html+='</div></div>';
   document.getElementById('tab-settings').innerHTML=html;
 }
+var wbArchOpen=false;
 
 // ── データ管理画面 ──
 function renderSettingsData(){
@@ -1849,6 +2409,7 @@ function renderSettingsField(){
   html+='<div class="sec-label">問題集</div>';
   var secOrder=[];var secMap={};
   wbs.forEach(function(w,j){
+    if(w.archivedAt)return; // アーカイブ済みは非表示
     var sec=w.section||'';
     if(!secMap.hasOwnProperty(sec)){secMap[sec]=[];secOrder.push(sec);}
     secMap[sec].push({w:w,j:j});
@@ -1905,7 +2466,14 @@ function renderSettingsWb(){
       +'</div>';
   }
   html+='<div class="settings-list" style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;">';
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">区分</span><input class="sc-input" style="width:130px;text-align:right;" type="text" placeholder="例：短答式" value="'+(w.section||'')+'" onchange="updWB('+setSelField+','+setSelWb+',\'section\',this.value);renderSettings()"></div>';
+  var secOpts='<option value="">なし</option>';
+  WB_SECTIONS.forEach(function(s){secOpts+='<option value="'+s+'"'+(w.section===s?' selected':'')+'>'+s+'</option>';});
+  if(w.section&&WB_SECTIONS.indexOf(w.section)===-1)secOpts+='<option value="'+w.section+'" selected>'+w.section+'</option>';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">区分</span><select class="sc-input" style="width:130px;text-align:right;border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text2);" onchange="updWB('+setSelField+','+setSelWb+',\'section\',this.value);renderSettings()">'+secOpts+'</select></div>';
+  var effGoal=effectiveWbGoal(w);
+  var mKey=wbMilestoneKey(w);
+  var mLabel=(GOAL_MILESTONES.filter(function(m){return m.key===mKey;})[0]||{}).label||'';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">目標日'+(w.goalCustom?'':(effGoal?' <span style="font-size:10px;color:var(--text3);">('+mLabel+'テンプレート)</span>':(w.section?' <span style="font-size:10px;color:var(--text3);">('+mLabel+')</span>':'')))+'</span><input class="sc-input" style="width:150px;text-align:right;border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text2);" type="date" value="'+(effGoal||'')+'" onchange="updWB('+setSelField+','+setSelWb+',\'goalDate\',this.value);renderSettings()"></div>';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">問題数</span><input class="sc-input" style="width:90px;text-align:right;" type="number" min="0" value="'+(w.total||0)+'" onchange="updWB('+setSelField+','+setSelWb+',\'total\',this.value)"></div>';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">1日の目標</span><input class="sc-input" style="width:90px;text-align:right;" type="number" min="0" value="'+(w.dailyGoal||0)+'" onchange="updWB('+setSelField+','+setSelWb+',\'dailyGoal\',this.value)"></div>';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;"><span style="font-size:14px;color:var(--text);">既存の解答数</span><input class="sc-input" style="width:90px;text-align:right;" type="number" min="0" value="'+(w.prevSolved||0)+'" onchange="updWB('+setSelField+','+setSelWb+',\'prevSolved\',this.value)"></div>';
@@ -1915,6 +2483,7 @@ function renderSettingsWb(){
     +'<span>現在の累計 <b style="color:var(--accent);font-size:15px;">'+wbSolved(w)+'</b> / '+(w.total||0)+'問</span>'
     +'<span>'+wbProgress(w)+'% ・ '+wbLap(w)+'周目</span>'
     +'</div>';
+  if(w.total>0)html+='<div onclick="if(confirm(\'手動で次の周へ進めますか？\'))manualAdvanceRound('+setSelField+','+setSelWb+')" style="text-align:right;font-size:12px;color:var(--text3);cursor:pointer;padding:6px 2px 0;">手動で次周へ進める ›</div>';
   // メモ
   html+='<div class="sec-label" style="margin-top:18px;">メモ</div>';
   html+='<textarea class="sc-textarea" style="min-height:110px;font-size:13px;padding:11px 13px;line-height:1.6;" placeholder="メモ..." onchange="updWB('+setSelField+','+setSelWb+',\'memo\',this.value)">'+(w.memo||'')+'</textarea>';
@@ -1924,12 +2493,10 @@ function renderSettingsWb(){
     data.fields.forEach(function(of,oi){if(oi!==setSelField)opts+='<option value="'+oi+'">'+of.name+'へ移動</option>';});
     html+='<select onchange="moveWbFromDetail(this.value)" style="margin-top:12px;width:100%;font-size:14px;color:var(--text2);border:0.5px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 14px;font-family:inherit;">'+opts+'</select>';
   }
-  // 削除（ゴミ箱）
-  if(wbs.length>1){
-    html+='<div onclick="removeWbFromDetail()" style="display:flex;align-items:center;justify-content:center;gap:6px;color:#c0584a;font-size:14px;cursor:pointer;padding:18px 0 4px;">'
-      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0584a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>'
-      +'この問題集を削除</div>';
-  }
+  // アーカイブ（記録は残る・ホームから非表示・最後の1冊でも可）
+  html+='<div onclick="archiveWbFromDetail()" style="display:flex;align-items:center;justify-content:center;gap:6px;color:var(--text2);font-size:14px;cursor:pointer;padding:18px 0 4px;">'
+    +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>'
+    +'この問題集をアーカイブ</div>';
   html+='</div></div>';
   document.getElementById('tab-settings').innerHTML=html;
 }
@@ -1947,7 +2514,7 @@ function settingsBack(){
   setEditingName=false;
   if(settingsView==='wb'){settingsView=(setWbBack==='wbList')?'wbList':'field';}
   else if(settingsView==='field'){settingsView='fieldList';}
-  else if(settingsView==='exam'){settingsView='examList';}
+  else if(settingsView==='exam'){settingsView='list';}
   else{settingsView='list';setExamFormOpen=false;setFieldFormOpen=false;setWbFormOpen=false;}
   renderSettings();
 }
@@ -1967,7 +2534,7 @@ function renderSettingsExam(){
   if(!ex){settingsView='list';renderSettings();return;}
   var on=(ex.id===data.activeExamId);
   var html='<div class="tab-pane"><div style="padding:0 16px;">';
-  html+='<div onclick="settingsBack()" style="display:flex;align-items:center;gap:3px;color:var(--accent);cursor:pointer;font-size:15px;padding:4px 0 12px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>試験</div>';
+  html+='<div onclick="settingsBack()" style="display:flex;align-items:center;gap:3px;color:var(--accent);cursor:pointer;font-size:15px;padding:4px 0 12px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>設定</div>';
   if(setEditingName){
     html+='<input id="edit-name-input" class="sc-name-input" style="font-size:24px;font-weight:700;border:none;border-bottom:1px solid var(--accent-mid);border-radius:0;background:transparent;width:100%;padding:0 0 6px;margin-bottom:10px;color:var(--text);" type="text" value="'+(ex.name||'')+'" onchange="updExam(\''+ex.id+'\',\'name\',this.value)" onblur="setEditingName=false;renderSettings()" placeholder="試験名">';
   }else{
@@ -1978,9 +2545,31 @@ function renderSettingsExam(){
   }
   // 設定項目
   html+='<div class="settings-list" style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;">';
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">目標日</span><input class="sc-input" style="text-align:right;" type="date" value="'+(ex.goalDate||'')+'" onchange="updExam(\''+ex.id+'\',\'goalDate\',this.value)"></div>';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">目標日（試験当日）</span><input class="sc-input" style="text-align:right;" type="date" value="'+(ex.goalDate||'')+'" onchange="updExam(\''+ex.id+'\',\'goalDate\',this.value);syncExamDayMilestone(this.value)"></div>';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">申込開始日</span><input class="sc-input" style="text-align:right;" type="date" value="'+(ex.applicationOpenDate||'')+'" onchange="updExam(\''+ex.id+'\',\'applicationOpenDate\',this.value);syncAppMilestone(\'app_open\',this.value)"></div>';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">申込締切日</span><input class="sc-input" style="text-align:right;" type="date" value="'+(ex.applicationCloseDate||'')+'" onchange="updExam(\''+ex.id+'\',\'applicationCloseDate\',this.value);syncAppMilestone(\'app_close\',this.value)"></div>';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;"><span style="font-size:14px;color:var(--text);">分野数</span><span style="font-size:14px;color:var(--text3);">'+(ex.fields||[]).length+'</span></div>';
   html+='</div>';
+  // 区分ごとの目標日テンプレート（この試験の問題集に適用）
+  if(on){
+    var sg=sectionGoals();
+    html+='<div class="sec-label" style="margin-top:22px;">区分の目標日</div>';
+    WB_SECTIONS.forEach(function(s,si){
+      html+='<div style="font-size:13px;font-weight:600;color:var(--text2);margin:'+(si>0?'16px':'4px')+' 0 6px;">'+s+'</div>';
+      html+='<div class="settings-list" style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:4px;">';
+      GOAL_MILESTONES.forEach(function(m,mi){
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;'+(mi<GOAL_MILESTONES.length-1?'border-bottom:0.5px solid var(--border);':'')+'">'
+          +'<span style="font-size:13px;color:var(--text2);">'+m.label+'</span>'
+          +'<input class="sc-input" style="width:150px;text-align:right;border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text);" type="date" value="'+((sg[s]&&sg[s][m.key])||'')+'" onchange="onSectionGoalChange(\''+s+'\',\''+m.key+'\',this.value)">'
+          +'</div>';
+      });
+      html+='</div>';
+    });
+    html+='<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);padding:10px 4px 0;cursor:pointer;">'
+      +'<input type="checkbox" id="sg-apply-existing" checked style="accent-color:var(--accent);width:15px;height:15px;">'
+      +'この区分の既存問題集にも適用する</label>';
+    html+='<div style="font-size:11px;color:var(--text3);padding:5px 4px 0;line-height:1.5;">個別に目標日を設定した問題集には適用されません。問題集は現在の周回数に応じて1周目／2周目／試験当日のいずれかを自動で参照します。</div>';
+  }
   // 切り替え
   if(on){
     html+='<div style="text-align:center;font-size:12px;color:var(--accent);font-weight:600;margin-top:14px;">✓ この試験を選択中</div>';
@@ -1995,6 +2584,13 @@ function renderSettingsExam(){
   }
   html+='</div></div>';
   document.getElementById('tab-settings').innerHTML=html;
+}
+// 区分テンプレート変更（チェックONなら既存問題集にも適用）
+function onSectionGoalChange(section,milestoneKey,date){
+  var chk=document.getElementById('sg-apply-existing');
+  var applyExisting=chk?chk.checked:true;
+  saveSectionGoal(section,milestoneKey,date,applyExisting);
+  renderSettings();
 }
 function removeExamFromDetail(){
   if(data.exams.length<=1){alert('試験は最低1つ必要です');return;}
@@ -2026,6 +2622,25 @@ function removeWbFromDetail(){
   f.workbooks.splice(setSelWb,1);
   settingsView=(setWbBack==='wbList')?'wbList':'field';save();renderSettings();
 }
+// 問題集詳細からアーカイブ
+function archiveWbFromDetail(){
+  var f=data.fields[setSelField];var wbs=fieldWorkbooks(f);var w=wbs[setSelWb];if(!w)return;
+  if(!confirm('「'+w.name+'」をアーカイブしますか？\nホームから非表示になりますが、記録はすべて残り、いつでも復元できます'))return;
+  archiveWb(setSelField,setSelWb);
+  settingsView=(setWbBack==='wbList')?'wbList':'field';renderSettings();
+}
+// アーカイブ一覧から復元
+function restoreWbFromList(fi,wj){
+  restoreWb(fi,wj);
+  renderSettings();
+}
+// アーカイブ一覧から完全削除（記録も消える）
+function deleteWbPermanent(fi,wj){
+  var f=data.fields[fi];var wbs=fieldWorkbooks(f);var w=wbs[wj];if(!w)return;
+  if(!confirm('「'+w.name+'」を完全に削除しますか？\n記録もすべて消え、元に戻せません'))return;
+  f.workbooks.splice(wj,1);
+  save();renderSettings();
+}
 function moveWbFromDetail(targetIdx){
   if(targetIdx==='')return;
   moveWB(setSelField,setSelWb,targetIdx);
@@ -2055,6 +2670,14 @@ function updWB(i,j,key,val){
   var wbs=fieldWorkbooks(data.fields[i]);
   if(!wbs[j])return;
   wbs[j][key]=val;
+  // 区分を変更した場合、個別設定でなければ何もしない
+  // → effectiveWbGoal()が新しい区分のテンプレートを動的に引くため、値コピーは不要
+  if(key==='section'&&!wbs[j].goalCustom){wbs[j].goalDate='';}
+  // 目標日を直接変更したら個別設定としてテンプレートより優先
+  if(key==='goalDate'){
+    wbs[j].goalCustom=!!val;
+    if(!val)wbs[j].goalDate=''; // 空にしたらテンプレートに戻る（自動追従）
+  }
   // 分野に古いフラットなworkbooksが無い場合の保険
   if(!Array.isArray(data.fields[i].workbooks))data.fields[i].workbooks=wbs;
   save();
