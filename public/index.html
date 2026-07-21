@@ -16,7 +16,7 @@
   --bg:#faf7f3;--surface:#ffffff;--border:#e8e1da;--border2:#ddd6ce;
   --text:#4a3e36;--text2:#7b6a60;--text3:#a69a90;
   --accent:#c07a5a;--accent-light:#f5ede9;--accent-mid:#d4957a;
-  --nav-h:72px;--radius:10px;--radius-sm:7px;--radius-lg:14px;
+  --nav-h:84px;--radius:10px;--radius-sm:7px;--radius-lg:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg)}
@@ -404,7 +404,7 @@ async function logoutFromServer(){
 var MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 var DOWS=['日','月','火','水','木','金','土'];
 // ヒートマップ色：0, 1-20, 21-50, 51-100, 101+
-var HM_COLORS=['#ECE7E2','#F3C9B6','#E28B6A','#C76A47','#B24A2E'];
+var HM_COLORS=['#ECE7E2','#E8A377','#DC7943','#C45A2C','#8F3018'];
 var LS_KEY='shikaku_v4';
 var currentUser=null;var hmFieldIdx=-1;// -1=全分野
 var achViewYear=null;var achViewMonth=null;var achSelectedDay=null;var achShowAll=false;// 実績画面：表示中の月・選択日・達成全表示
@@ -454,13 +454,13 @@ var ACHIEVEMENTS=[
   {id:'dq200',   cat:'daily',name:'1日200問', desc:'1日で200問解いた', remain:function(s){return 200-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=200;}},
   {id:'dq300',   cat:'daily',name:'1日300問', desc:'1日で300問解いた', remain:function(s){return 300-s.maxDay;},unit:'問',check:function(d,s){return s.maxDay>=300;}},
   // ④ 分野
-  {id:'field_first',cat:'field',name:'初回完了', desc:'分野を初めて100%完了',check:function(d,s){return d.fields.some(function(f){return progress(f)>=100;});}},
-  {id:'field50',  cat:'field',name:'折り返し',  desc:'いずれかの分野が進捗50%',check:function(d,s){return d.fields.some(function(f){return progress(f)>=50;});}},
-  {id:'field_all1',cat:'field',name:'全分野1周', desc:'全分野を1周した',check:function(d,s){return d.fields.length>0&&s.allFieldsLap>=1&&d.fields.every(function(f){return progress(f)>=100;});}},
+  {id:'field_first',cat:'field',name:'初回完了', desc:'分野を初めて100%完了',check:function(d,s){return d.fields.some(function(f){return lapCount(f)>=2;});}},
+  {id:'field50',  cat:'field',name:'折り返し',  desc:'いずれかの分野が進捗50%',check:function(d,s){return d.fields.some(function(f){return progress(f)>=50||lapCount(f)>=2;});}},
+  {id:'field_all1',cat:'field',name:'全分野1周', desc:'全分野を1周した',check:function(d,s){return d.fields.length>0&&s.allFieldsLap>=1;}},
   {id:'field_all3',cat:'field',name:'全分野3周', desc:'全分野を3周した',remain:function(s){return 3-s.allFieldsLap;},unit:'周',check:function(d,s){return d.fields.length>0&&s.allFieldsLap>=3;}},
   {id:'field_all5',cat:'field',name:'全分野5周', desc:'全分野を5周した',remain:function(s){return 5-s.allFieldsLap;},unit:'周',check:function(d,s){return d.fields.length>0&&s.allFieldsLap>=5;}},
   // ⑤ 問題集
-  {id:'wb_lap1', cat:'workbook',name:'問題集1周',desc:'問題集を1周した',check:function(d,s){return s.maxLap>=1&&s.totalSolved>0&&d.fields.some(function(f){return fieldWorkbooks(f).some(function(w){return wbProgress(w)>=100;});});}},
+  {id:'wb_lap1', cat:'workbook',name:'問題集1周',desc:'問題集を1周した',check:function(d,s){return s.maxLap>=1&&s.totalSolved>0;}},
   {id:'wb_lap2', cat:'workbook',name:'問題集2周',desc:'問題集を2周した',remain:function(s){return 2-s.maxLap;},unit:'周',check:function(d,s){return s.maxLap>=2;}},
   {id:'wb_lap3', cat:'workbook',name:'問題集3周',desc:'問題集を3周した',remain:function(s){return 3-s.maxLap;},unit:'周',check:function(d,s){return s.maxLap>=3;}},
   {id:'wb_lap5', cat:'workbook',name:'問題集5周',desc:'問題集を5周した',remain:function(s){return 5-s.maxLap;},unit:'周',check:function(d,s){return s.maxLap>=5;}},
@@ -627,6 +627,34 @@ var MILESTONE_TYPES={
   free:{label:'イベント',icon:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/></svg>'}
 };
 function milestoneList(){var e=activeExam();if(!e)return[];if(!e.milestones)e.milestones=[];return e.milestones;}
+// ── カスタム予定カテゴリ（自分で決める学習期限：「短答1周」「復習締切」など）──
+// 固定5種のtypeとは別に、試験ごとに自由な数だけ追加できる。
+function customMilestoneTypes(){var e=activeExam();if(!e)return[];if(!e.customTypes)e.customTypes=[];return e.customTypes;}
+function addCustomMilestoneType(label){
+  if(!label||!label.trim())return;
+  customMilestoneTypes().push({id:genId('mt'),label:label.trim()});
+  save();
+}
+function updCustomMilestoneType(id,label){
+  var t=customMilestoneTypes().filter(function(x){return x.id===id;})[0];
+  if(!t)return;
+  t.label=label;
+  save();
+}
+function removeCustomMilestoneType(id){
+  var list=customMilestoneTypes();
+  var idx=list.findIndex(function(x){return x.id===id;});
+  if(idx<0)return;
+  list.splice(idx,1);
+  save();
+}
+// typeキー（固定種 or カスタムID）からラベル・アイコンを解決
+function resolveMilestoneType(typeKey){
+  if(MILESTONE_TYPES[typeKey])return MILESTONE_TYPES[typeKey];
+  var custom=customMilestoneTypes().filter(function(x){return x.id===typeKey;})[0];
+  if(custom)return{label:custom.label,icon:MILESTONE_TYPES.free.icon,custom:true};
+  return MILESTONE_TYPES.free;
+}
 // 日付→その日のマイルストーン配列のマップ（カレンダー表示用）
 function milestoneDateMap(){
   var m={};
@@ -640,7 +668,7 @@ function milestoneDateMap(){
 function addMilestone(type,title,date){
   if(!date)return;
   var list=milestoneList();
-  list.push({id:genId('ms'),type:type,title:title||(MILESTONE_TYPES[type]||{}).label||'',date:date});
+  list.push({id:genId('ms'),type:type,title:title||resolveMilestoneType(type).label,date:date});
   save();
 }
 function updMilestone(id,key,val){
@@ -674,6 +702,12 @@ function openMilestoneSheet(id){
   var title=ms?(ms.title||''):'';
   var typeOpts='';
   Object.keys(MILESTONE_TYPES).forEach(function(k){typeOpts+='<option value="'+k+'"'+(type===k?' selected':'')+'>'+MILESTONE_TYPES[k].label+'</option>';});
+  var customs=customMilestoneTypes();
+  if(customs.length){
+    typeOpts+='<optgroup label="自分の予定">';
+    customs.forEach(function(t){typeOpts+='<option value="'+t.id+'"'+(type===t.id?' selected':'')+'>'+t.label+'</option>';});
+    typeOpts+='</optgroup>';
+  }
   var fieldStyle='width:100%;font-size:15px;color:var(--text);border:0.5px solid var(--border);background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;font-family:inherit;box-sizing:border-box;';
   var labelStyle='font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text3);margin-bottom:6px;';
   var html='<div class="day-modal-bg" onclick="closeAchModal()">'
@@ -887,7 +921,7 @@ function fieldWorkbooks(f){
 }
 function wbCounted(w){var s=0;Object.keys(w.counts||{}).forEach(function(k){s+=w.counts[k];});return s;}
 function wbSolved(w){return (w.prevSolved||0)+wbCounted(w);}
-function wbProgress(w){return w.total>0?Math.min(100,Math.round(wbSolved(w)/w.total*100)):0;}
+function wbProgress(w){var tr=wbTargetRounds(w);return tr>0?Math.min(100,Math.round(wbRoundsAchieved(w)/tr*100)):0;}
 // 周回：currentRound / roundStartSolved を明示保持（設計書5準拠）。
 // 未確定の間は目標到達しても次周へ進めず、confirmWbRoundComplete()の「完了する」で進む。
 function wbLap(w){
@@ -896,6 +930,14 @@ function wbLap(w){
 }
 // この周でこれまでに解いた数（roundStartSolvedからの差分）
 function wbInRound(w){return Math.max(0,wbSolved(w)-(w.roundStartSolved||0));}
+// 目標周回数（未設定は1周とみなす）
+function wbTargetRounds(w){return w.targetRounds>0?w.targetRounds:1;}
+// 今の周までの実質達成周回数（例：2周終えて3周目を40%なら2.4）
+function wbRoundsAchieved(w){
+  var done=(w.currentRound||1)-1;
+  var inRoundRatio=w.total>0?wbInRound(w)/w.total:0;
+  return done+Math.min(1,inRoundRatio);
+}
 // 目標到達済みだが未確認か
 function wbRoundPending(w){return !!(w.total>0&&wbInRound(w)>=w.total&&!w._roundJustReset);}
 // 旧データ（currentRound未保持）を、現行のlap計算と矛盾しない形で補完する
@@ -914,7 +956,11 @@ function wbTodayCount(w){return(w.counts||{})[todayStr()]||0;}
 function fieldTotalQ(f){return fieldWorkbooks(f).reduce(function(a,w){return a+(w.total||0);},0);}
 function totalCounted(f){return fieldWorkbooks(f).reduce(function(a,w){return a+wbCounted(w);},0);}
 function totalSolved(f){return fieldWorkbooks(f).reduce(function(a,w){return a+wbSolved(w);},0);}
-function progress(f){var t=fieldTotalQ(f);return t>0?Math.min(100,Math.round(totalSolved(f)/t*100)):0;}
+// 分野内の各問題集の「現在の周」の進捗を合算（周回完了でリセットされた分は含まない）
+// 分野内の総達成周回数合計 ÷ 目標周回数合計（要望どおりの集計方式）
+function fieldRoundsAchieved(f){return fieldWorkbooks(f).reduce(function(a,w){return a+wbRoundsAchieved(w);},0);}
+function fieldTargetRoundsSum(f){return fieldWorkbooks(f).reduce(function(a,w){return a+wbTargetRounds(w);},0);}
+function progress(f){var t=fieldTargetRoundsSum(f);return t>0?Math.min(100,Math.round(fieldRoundsAchieved(f)/t*100)):0;}
 function lapCount(f){var t=fieldTotalQ(f);return t>0?Math.floor(totalSolved(f)/t)+1:1;}
 function todayCount(f){return fieldWorkbooks(f).reduce(function(a,w){return a+wbTodayCount(w);},0);}
 function fieldDailyGoal(f){return fieldWorkbooks(f).reduce(function(a,w){return a+(w.dailyGoal||0);},0);}
@@ -1633,6 +1679,22 @@ function dismissRoundSheet(){
 }
 // 周回完了：次周へ進める（currentRound+1・開始点更新・次マイルストーンの目標日を自動参照）
 // 手動で次周へ進める（設定画面から・未到達でも可）
+// プルダウンで「その他（自由入力）」を選んだ時、数値を尋ねて反映する。キャンセル/無効値は元に戻す。
+function onCustomSelect(selectEl,fi,wj,key,minVal){
+  if(selectEl.value!=='__custom'){
+    updWB(fi,wj,key,selectEl.value);
+    renderSettings();
+    return;
+  }
+  var wbs=fieldWorkbooks(data.fields[fi]);var w=wbs[wj];
+  var cur=w?(w[key]||minVal):minVal;
+  var input=prompt('数値を入力してください（'+minVal+'以上）',cur);
+  if(input===null){renderSettings();return;} // キャンセル→元の表示に戻す
+  var n=parseInt(input);
+  if(isNaN(n)||n<minVal){renderSettings();return;} // 無効値→元の表示に戻す
+  updWB(fi,wj,key,n);
+  renderSettings();
+}
 function manualAdvanceRound(fi,wj){
   var f=data.fields[fi];if(!f)return;
   var wbs=fieldWorkbooks(f);var w=wbs[wj];if(!w)return;
@@ -1848,13 +1910,13 @@ function renderAchievements(){
   var HM_DOT=true;
   // ドットのサイズ＆色（5段階・差を明確に）
   function achDotSpec(c){
-    if(c===0)return{sz:6,col:'#ddd4cb'};      // 未学習
-    if(c<=9)return{sz:9,col:HM_COLORS[1]};    // 少量
-    if(c<=29)return{sz:12,col:HM_COLORS[2]};  // 中量
-    if(c<=59)return{sz:15,col:HM_COLORS[3]};  // 多量
-    return{sz:18,col:HM_COLORS[4]};           // 大量
+    if(c===0)return{sz:17,col:'#f0ebe3'};     // 未学習（もっと薄いベージュ）
+    if(c<=9)return{sz:20,col:HM_COLORS[1]};   // 少量
+    if(c<=29)return{sz:23,col:HM_COLORS[2]};  // 中量
+    if(c<=59)return{sz:28,col:HM_COLORS[3]};  // 多量
+    return{sz:31,col:HM_COLORS[4]};           // 大量
   }
-  var LINK_LINE='rgba(178,74,46,0.35)';// 連続日をつなぐ細いライン
+  var LINK_LINE='rgba(143,48,24,0.6)';// 連続日をつなぐライン
   function dayCnt(dd){
     if(dd<1||dd>daysInMonth)return 0;
     var k=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
@@ -1876,15 +1938,14 @@ function renderAchievements(){
       // 連続学習：右隣（同じ週内）も学習日なら細いラインで接続
       var hasNext=cnt>0&&dow<6&&dayCnt(d+1)>0;
       var link=hasNext?'<span style="position:absolute;top:50%;left:50%;width:calc(100% + 4px);height:1.5px;background:'+LINK_LINE+';transform:translateY(-50%);"></span>':'';
-      // 選択リング：ドット外側に余白＋2pxリング
-      var dotExtra=isSel?'box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--accent);':'';
       var isGoal=!!goals[key];
       var hasMs=!!msMap[key];
-      html+='<div onclick="achSelectDay(\''+key+'\')" style="aspect-ratio:1;opacity:'+op+';cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">'
+      var selGlow=isSel?'box-shadow:0 0 0 5px rgba(230,220,204,0.55),0 0 10px 6px rgba(230,220,204,0.35);':'';
+      html+='<div onclick="achSelectDay(\''+key+'\')" style="aspect-ratio:1;opacity:'+op+';cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">'
         +'<span style="font-size:9px;line-height:1;color:'+(isSel||isToday||isGoal?'var(--accent)':'var(--text3)')+';font-weight:'+(isSel||isToday||isGoal?'700':'400')+';'+(isGoal?'border-bottom:1.5px solid var(--accent-mid);padding-bottom:1px;':'')+'">'+d+'</span>'
-        +'<span style="position:relative;width:100%;height:18px;display:flex;align-items:center;justify-content:center;">'
+        +'<span style="position:relative;width:100%;height:31px;display:flex;align-items:center;justify-content:center;">'
         +link
-        +'<span style="position:relative;width:'+spec.sz+'px;height:'+spec.sz+'px;border-radius:50%;background:'+spec.col+';'+dotExtra+'flex-shrink:0;"></span>'
+        +'<span style="position:relative;width:'+spec.sz+'px;height:'+spec.sz+'px;border-radius:'+Math.max(2,Math.round(spec.sz*0.28))+'px;background:'+spec.col+';'+selGlow+'flex-shrink:0;"></span>'
         +'</span>'
         +(hasMs?'<span style="width:3px;height:3px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>':'<span style="height:3px;"></span>')
         +'</div>';
@@ -1919,7 +1980,7 @@ function renderAchievements(){
   var dayMs=milestoneDateMap()[achSelectedDay]||[];
   if(dayMs.length){
     dayMs.forEach(function(ms){
-      var mt=MILESTONE_TYPES[ms.type]||MILESTONE_TYPES.free;
+      var mt=resolveMilestoneType(ms.type);
       html+='<div onclick="openMilestoneSheet(\''+ms.id+'\')" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);margin-top:4px;cursor:pointer;">'
         +'<span style="color:var(--accent);display:flex;flex-shrink:0;">'+mt.icon+'</span>'
         +'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(ms.title||mt.label)+'</span></div>';
@@ -2123,7 +2184,7 @@ function openAchCatModal(cat){
 }
 var _achCatCur='continue';
 function achPrevMonth(){achViewMonth--;if(achViewMonth<0){achViewMonth=11;achViewYear--;}renderAchievements();}
-function achNextMonth(){var n=studyDate(new Date());achViewMonth++;if(achViewMonth>11){achViewMonth=0;achViewYear++;}if(achViewYear>n.getFullYear()||(achViewYear===n.getFullYear()&&achViewMonth>n.getMonth())){achViewMonth=n.getMonth();achViewYear=n.getFullYear();}renderAchievements();}
+function achNextMonth(){achViewMonth++;if(achViewMonth>11){achViewMonth=0;achViewYear++;}renderAchievements();}
 function achSelectDay(key){achSelectedDay=key;renderAchievements();}
 
 // バッジ詳細モーダル
@@ -2475,13 +2536,23 @@ function renderSettingsWb(){
   var mLabel=(GOAL_MILESTONES.filter(function(m){return m.key===mKey;})[0]||{}).label||'';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">目標日'+(w.goalCustom?'':(effGoal?' <span style="font-size:10px;color:var(--text3);">('+mLabel+'テンプレート)</span>':(w.section?' <span style="font-size:10px;color:var(--text3);">('+mLabel+')</span>':'')))+'</span><input class="sc-input" style="width:150px;text-align:right;border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text2);" type="date" value="'+(effGoal||'')+'" onchange="updWB('+setSelField+','+setSelWb+',\'goalDate\',this.value);renderSettings()"></div>';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">問題数</span><input class="sc-input" style="width:90px;text-align:right;" type="number" min="0" value="'+(w.total||0)+'" onchange="updWB('+setSelField+','+setSelWb+',\'total\',this.value)"></div>';
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">1日の目標</span><input class="sc-input" style="width:90px;text-align:right;" type="number" min="0" value="'+(w.dailyGoal||0)+'" onchange="updWB('+setSelField+','+setSelWb+',\'dailyGoal\',this.value)"></div>';
+  var trOpts='';for(var tr=1;tr<=5;tr++){trOpts+='<option value="'+tr+'"'+(wbTargetRounds(w)===tr?' selected':'')+'>'+tr+'周</option>';}
+  var trIsCustom=wbTargetRounds(w)>5;
+  if(trIsCustom)trOpts+='<option value="'+wbTargetRounds(w)+'" selected>'+wbTargetRounds(w)+'周</option>';
+  trOpts+='<option value="__custom">その他（自由入力）</option>';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">目標周回数</span><select class="sc-input" style="width:120px;text-align:right;border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text2);" onchange="onCustomSelect(this,'+setSelField+','+setSelWb+',\'targetRounds\',1)">'+trOpts+'</select></div>';
+  var dgVal=w.dailyGoal||0;
+  var dgOpts='';for(var dg=0;dg<=30;dg+=5){dgOpts+='<option value="'+dg+'"'+(dgVal===dg?' selected':'')+'>'+dg+'問</option>';}
+  var dgIsCustom=(dgVal>30||dgVal%5!==0);
+  if(dgIsCustom)dgOpts+='<option value="'+dgVal+'" selected>'+dgVal+'問</option>';
+  dgOpts+='<option value="__custom">その他（自由入力）</option>';
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--border);"><span style="font-size:14px;color:var(--text);">1日の目標</span><select class="sc-input" style="width:120px;text-align:right;border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text2);" onchange="onCustomSelect(this,'+setSelField+','+setSelWb+',\'dailyGoal\',0)">'+dgOpts+'</select></div>';
   html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;"><span style="font-size:14px;color:var(--text);">既存の解答数</span><input class="sc-input" style="width:90px;text-align:right;" type="number" min="0" value="'+(w.prevSolved||0)+'" onchange="updWB('+setSelField+','+setSelWb+',\'prevSolved\',this.value)"></div>';
   html+='</div>';
   // 現況
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:11px 14px;background:var(--accent-light);border-radius:10px;font-size:12px;color:var(--text2);">'
     +'<span>現在の累計 <b style="color:var(--accent);font-size:15px;">'+wbSolved(w)+'</b> / '+(w.total||0)+'問</span>'
-    +'<span>'+wbProgress(w)+'% ・ '+wbLap(w)+'周目</span>'
+    +'<span>'+wbProgress(w)+'% ・ '+wbLap(w)+'/'+wbTargetRounds(w)+'周目</span>'
     +'</div>';
   if(w.total>0)html+='<div onclick="if(confirm(\'手動で次の周へ進めますか？\'))manualAdvanceRound('+setSelField+','+setSelWb+')" style="text-align:right;font-size:12px;color:var(--text3);cursor:pointer;padding:6px 2px 0;">手動で次周へ進める ›</div>';
   // メモ
@@ -2569,6 +2640,24 @@ function renderSettingsExam(){
       +'<input type="checkbox" id="sg-apply-existing" checked style="accent-color:var(--accent);width:15px;height:15px;">'
       +'この区分の既存問題集にも適用する</label>';
     html+='<div style="font-size:11px;color:var(--text3);padding:5px 4px 0;line-height:1.5;">個別に目標日を設定した問題集には適用されません。問題集は現在の周回数に応じて1周目／2周目／試験当日のいずれかを自動で参照します。</div>';
+    // 予定のカテゴリ（自分で決める学習期限。模試・申込日以外に自由に追加できる）
+    html+='<div class="sec-label" style="margin-top:22px;">予定のカテゴリ</div>';
+    var customTypes=customMilestoneTypes();
+    if(customTypes.length){
+      html+='<div class="settings-list" style="background:var(--surface);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;">';
+      customTypes.forEach(function(t,ti){
+        html+='<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;'+(ti<customTypes.length-1?'border-bottom:0.5px solid var(--border);':'')+'">'
+          +'<input class="sc-input" style="flex:1;border:none;background:transparent;font-family:inherit;font-size:14px;color:var(--text);padding:0;" type="text" value="'+t.label+'" onchange="updCustomMilestoneType(\''+t.id+'\',this.value)">'
+          +'<span onclick="if(confirm(\'「'+t.label+'」を削除しますか？\\n作成済みの予定は残ります\')){removeCustomMilestoneType(\''+t.id+'\');renderSettings();}" style="cursor:pointer;padding:4px;display:flex;flex-shrink:0;color:#c0584a;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>'
+          +'</div>';
+      });
+      html+='</div>';
+    }
+    html+='<div class="acc-body" style="display:flex;gap:8px;">'
+      +'<input type="text" id="new-ms-type" placeholder="例：短答1周目標、復習締切" style="flex:1;border:0.5px solid var(--border);background:var(--surface);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;color:var(--text);">'
+      +'<button class="btn-add" style="padding:9px 16px;" onclick="var i=document.getElementById(\'new-ms-type\');addCustomMilestoneType(i.value);i.value=\'\';renderSettings()">追加</button>'
+      +'</div>';
+    html+='<div style="font-size:11px;color:var(--text3);padding:6px 4px 0;line-height:1.5;">「問題集を1周する」「復習を終える」など、自分で決めた期限をカテゴリとして追加できます。追加後は予定の「種類」から選べます。</div>';
   }
   // 切り替え
   if(on){
@@ -2666,7 +2755,7 @@ function updF(i,key,val){
 }
 // 問題集の値を更新
 function updWB(i,j,key,val){
-  if(key==='total'||key==='dailyGoal'||key==='prevSolved')val=parseInt(val)||0;
+  if(key==='total'||key==='dailyGoal'||key==='prevSolved'||key==='targetRounds')val=parseInt(val)||0;
   var wbs=fieldWorkbooks(data.fields[i]);
   if(!wbs[j])return;
   wbs[j][key]=val;
