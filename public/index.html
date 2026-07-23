@@ -37,6 +37,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 /* ── メインアプリ ── */
 #main-screen{display:none}
 .app{max-width:480px;margin:0 auto;padding:0 0 calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 32px);min-height:100vh}
+.tab-viewport{overflow-x:hidden;position:relative}
+.tab-slide-in-right{animation:tabSlideInRight .28s cubic-bezier(.22,.61,.36,1)}
+.tab-slide-in-left{animation:tabSlideInLeft .28s cubic-bezier(.22,.61,.36,1)}
+@keyframes tabSlideInRight{from{transform:translateX(28px);opacity:.4}to{transform:translateX(0);opacity:1}}
+@keyframes tabSlideInLeft{from{transform:translateX(-28px);opacity:.4}to{transform:translateX(0);opacity:1}}
 .header{padding:calc(env(safe-area-inset-top,0px) + 14px) 22px 2px;margin-bottom:8px}
 .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .header-left h1{font-size:14px;font-weight:600;letter-spacing:.01em;color:var(--text)}
@@ -48,7 +53,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 
 /* ── ボトムナビ ── */
 .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:0.5px solid var(--border);display:flex;align-items:flex-start;z-index:100}
-.nav-btn{flex:1;height:var(--nav-h);border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--text3);font-family:inherit;position:relative;transition:color .2s;padding:10px 0;}
+.nav-btn{flex:1;height:var(--nav-h);border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;cursor:pointer;color:var(--text3);font-family:inherit;position:relative;transition:color .2s;padding:10px 0 27px;}
 .nav-btn.active{color:var(--accent)}
 .nav-icon{width:24px;height:24px;display:flex;align-items:center;justify-content:center;transition:transform .18s cubic-bezier(.34,1.56,.64,1)}
 .nav-btn.active .nav-icon{transform:scale(1.12)}
@@ -309,10 +314,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
   <div class="app">
     <div style="height:calc(env(safe-area-inset-top,0px) + 12px);"></div>
     <div class="sync-badge" id="sync-status"></div>
-    <div id="tab-counter"></div>
-    <div id="tab-heatmap" style="display:none"></div>
-    <div id="tab-achievements" style="display:none"></div>
-    <div id="tab-settings" style="display:none"></div>
+    <div class="tab-viewport">
+      <div id="tab-counter"></div>
+      <div id="tab-heatmap" style="display:none"></div>
+      <div id="tab-achievements" style="display:none"></div>
+      <div id="tab-settings" style="display:none"></div>
+    </div>
     <nav class="nav">
       <!-- カウンター -->
       <button class="nav-btn active" onclick="showTab('counter')" id="nav-counter">
@@ -1142,17 +1149,55 @@ function showAchToast(ach){
 
 function fmtTime(ts){var d=new Date(ts);var h=String(d.getHours()).padStart(2,'0');var m=String(d.getMinutes()).padStart(2,'0');if(d.toDateString()===new Date().toDateString())return h+':'+m;return (d.getMonth()+1)+'/'+d.getDate()+' '+h+':'+m;}
 
-function showTab(name){
+var TAB_ORDER=['counter','achievements','settings'];
+function showTab(name,dir){
+  var prevTab=currentTab;
   openCards={};currentTab=name;hmShowAllLogs=false;
+  if(!dir&&prevTab!==name){
+    var pi=TAB_ORDER.indexOf(prevTab),ni=TAB_ORDER.indexOf(name);
+    if(pi>=0&&ni>=0)dir=(ni>pi)?'next':'prev';
+  }
   ['counter','achievements','settings'].forEach(function(t){
-    document.getElementById('tab-'+t).style.display=t===name?'':'none';
+    var el=document.getElementById('tab-'+t);
+    el.style.display=t===name?'':'none';
     document.getElementById('nav-'+t).classList.toggle('active',t===name);
+    if(t===name&&dir){
+      el.classList.remove('tab-slide-in-left','tab-slide-in-right');
+      void el.offsetWidth;
+      // 次のタブへ進む時は右から、前のタブへ戻る時は左から出現
+      el.classList.add(dir==='next'?'tab-slide-in-right':'tab-slide-in-left');
+    }
   });
   if(name==='counter')renderCounter();
   if(name==='achievements')renderAchievements();
   if(name==='settings'){settingsView='list';setExamFormOpen=false;setFieldFormOpen=false;setWbFormOpen=false;setEditingName=false;renderSettings();}
 }
 function toggleCard(i){if(openCards[i])delete openCards[i];else openCards[i]=true;renderCounter();}
+
+// ── フリックでタブ切り替え（シンプル版：スワイプ検知してタブを切り替えるだけ）──
+(function(){
+  var sx=0,sy=0,tracking=false,startedOnHScroll=false;
+  var appEl=document.querySelector('.app');
+  if(!appEl)return;
+  appEl.addEventListener('touchstart',function(e){
+    if(e.touches.length!==1)return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+    tracking=true;
+    // 横スクロール要素（分野の問題集チップ等）の上で始まったスワイプは対象外
+    startedOnHScroll=!!(e.target.closest&&e.target.closest('.field-chips, .hm-field-scroll'));
+  },{passive:true});
+  appEl.addEventListener('touchend',function(e){
+    if(!tracking)return;tracking=false;
+    if(startedOnHScroll)return;
+    var t=e.changedTouches[0];
+    var dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.5)return; // 横移動が十分大きい時だけ反応
+    var idx=TAB_ORDER.indexOf(currentTab);
+    if(idx<0)return;
+    if(dx<0&&idx<TAB_ORDER.length-1)showTab(TAB_ORDER[idx+1],'next'); // 左フリック→次のタブ（右からスライドイン）
+    else if(dx>0&&idx>0)showTab(TAB_ORDER[idx-1],'prev'); // 右フリック→前のタブ（左からスライドイン）
+  },{passive:true});
+})();
 
 function renderCounter(){
   updateHeaderStreak();
@@ -1229,8 +1274,24 @@ function renderCounter(){
       +'</div>';
   }
 
-  // ════ 実績導線（達成率が最も高い未達成1件・最小限）════
+  // ════ メインカード下の1行：1日目標が未達成ならそちらを優先、達成済みなら実績を表示 ════
   (function(){
+    var shown=false;
+    if(mainIdx>=0){
+      var mf2=data.fields[mainIdx];
+      var goal=fieldDailyGoal(mf2);
+      var todayC=todayCount(mf2);
+      if(goal>0&&todayC<goal){
+        var remainQ=goal-todayC;
+        html+='<div style="display:flex;align-items:center;gap:7px;margin:0 22px 14px;padding:0 2px;">'
+          +'<span style="color:var(--accent);display:flex;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>'
+          +'<span style="font-size:13px;color:var(--text3);">1日目標まであと<span style="color:var(--text2);font-weight:600;">'+remainQ+'</span>問</span>'
+          +'</div>';
+        shown=true;
+      }
+    }
+    if(shown)return;
+    // 1日目標が無い/達成済みの場合は実績（達成率が最も高い未達成1件）を表示
     var unlocked=data.unlockedAchievements||[];
     var st=calcStats();
     var best=null;
@@ -1892,7 +1953,7 @@ function renderAchievements(){
   var html='<div class="tab-pane"><div style="padding:0 16px;">';
 
   // ════ 1. ヒートマップ ════
-  html+='<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:13px 16px 5px;margin:4px 0 12px;">';
+  html+='<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:23px 16px 15px;margin:4px 0 15px;">';
   // 1行：月切替（左）＋連続記録（右）
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
     +'<div style="display:flex;align-items:center;gap:6px;">'
@@ -1922,7 +1983,7 @@ function renderAchievements(){
     var k=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
     return counts[k]||0;
   }
-  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;grid-auto-rows:55px;">';
   for(var e=0;e<firstDow;e++)html+='<div></div>';
   for(var d=1;d<=daysInMonth;d++){
     var key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
@@ -1941,7 +2002,7 @@ function renderAchievements(){
       var isGoal=!!goals[key];
       var hasMs=!!msMap[key];
       var selGlow=isSel?'box-shadow:0 0 0 5px rgba(230,220,204,0.55),0 0 10px 6px rgba(230,220,204,0.35);':'';
-      html+='<div onclick="achSelectDay(\''+key+'\')" style="aspect-ratio:1;opacity:'+op+';cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">'
+      html+='<div onclick="achSelectDay(\''+key+'\')" style="height:55px;opacity:'+op+';cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">'
         +'<span style="font-size:9px;line-height:1;color:'+(isSel||isToday||isGoal?'var(--accent)':'var(--text3)')+';font-weight:'+(isSel||isToday||isGoal?'700':'400')+';'+(isGoal?'border-bottom:1.5px solid var(--accent-mid);padding-bottom:1px;':'')+'">'+d+'</span>'
         +'<span style="position:relative;width:100%;height:31px;display:flex;align-items:center;justify-content:center;">'
         +link
@@ -1957,6 +2018,15 @@ function renderAchievements(){
       html+='<div onclick="achSelectDay(\''+key+'\')" style="aspect-ratio:1;background:'+col+';opacity:'+op+';cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:5px;'+extra+'"><span style="font-size:10px;color:'+(cnt>50?'#fff':(isSel||isToday?'var(--accent)':'var(--text3)'))+';font-weight:'+(isSel||isToday?'700':'400')+';">'+d+'</span></div>';
     }
   }
+  // 今月・累計（カレンダーの一部として下部に添える）
+  var monthTotal=0;
+  var mPrefix=yr+'-'+String(mo+1).padStart(2,'0');
+  Object.keys(counts).forEach(function(k){if(k.indexOf(mPrefix)===0)monthTotal+=counts[k];});
+  html+='<div style="font-size:12px;color:var(--text3);margin-top:12px;padding-top:10px;border-top:0.5px solid var(--border);">'
+    +'今月 <span style="font-weight:600;color:var(--text2);">'+monthTotal.toLocaleString()+'</span>'
+    +'<span style="color:var(--border2);margin:0 8px;">｜</span>'
+    +'累計 <span style="font-weight:600;color:var(--accent);">'+solvedQ.toLocaleString()+'</span>'
+    +'</div>';
   html+='</div>';
   html+='</div>';
 
@@ -2003,16 +2073,6 @@ function renderAchievements(){
   }
   html+='</div>';
 
-  // ════ 3. 統計（横並びテキスト・カードなし）════
-  var monthTotal=0;
-  var mPrefix=yr+'-'+String(mo+1).padStart(2,'0');
-  Object.keys(counts).forEach(function(k){if(k.indexOf(mPrefix)===0)monthTotal+=counts[k];});
-  html+='<div style="font-size:13px;color:var(--text2);margin:0 0 16px;padding:0 2px;">'
-    +'今月 <span style="font-weight:600;color:var(--text);">'+monthTotal.toLocaleString()+'</span>'
-    +'<span style="color:var(--border2);margin:0 8px;">｜</span>'
-    +'累計 <span style="font-weight:600;color:var(--accent);">'+solvedQ.toLocaleString()+'</span>'
-    +'</div>';
-
   // ════ 4. 達成（2列グリッド）════
   // 達成間近リスト（優先：残り1〜3日 → 残り問数が少ない → その他）
   var nearList=[];
@@ -2040,7 +2100,7 @@ function renderAchievements(){
   });
 
   // ヘッダー：達成 2/20 ＋ すべて見る
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;margin-top:3px;">'
     +'<span style="font-size:13px;font-weight:600;color:var(--text2);">達成 <span style="color:var(--text3);font-weight:400;">'+achUnlockedCount+'/'+ACHIEVEMENTS.length+'</span></span>'
     +'<span onclick="openAchListModal()" style="display:inline-flex;align-items:center;gap:1px;font-size:12px;color:var(--accent);cursor:pointer;">すべて見る<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>'
     +'</div>';
