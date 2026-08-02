@@ -795,6 +795,44 @@ async function loadFromCloud(){if(!currentUser)return false;try{var res=await sb
   return true;}}catch(e){}return false;}
 async function migrateLocalToCloud(){var local=loadLocal();var hasLocal=(local.fields||[]).some(function(f){return Object.keys(f.counts||{}).length>0||f.prevSolved>0;});if(!hasLocal)return;var res=await sb.from('study_data').select('id').eq('user_id',currentUser.id).single();if(res.error||!res.data){data=local;migrateToWorkbooks(data);migrateToExams(data);ensureIds(data);migrateWbRounds(data);syncActiveExam();await saveToCloud();showSync('☁ ローカルデータを移行しました');}}
 function save(){ensureIds(data);migrateWbRounds(data);saveLocal(data);if(currentUser)saveToCloud();checkAchievements();}
+
+// メモ欄の自由記述（例：「憲法10 民法5」）から、登録済み分野名ごとの問題数を抽出して合計する。
+// 分野名が他の分野名の一部になっている場合の誤検出を避けるため、長い名前から順にマッチを試みる。
+function parseMemoByField(memoText,fields){
+  var result={};
+  if(!memoText)return result;
+  var names=fields.map(function(f){return f.name;}).filter(Boolean).sort(function(a,b){return b.length-a.length;});
+  names.forEach(function(name){
+    // 分野名の直後に続く数字をすべて拾って合計する（同じ分野が複数回出てきてもOK）
+    var esc=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    var re=new RegExp(esc+'\\s*(\\d+)','g');
+    var m;var sum=0;var hit=false;
+    while((m=re.exec(memoText))!==null){sum+=parseInt(m[1])||0;hit=true;}
+    if(hit)result[name]=(result[name]||0)+sum;
+  });
+  return result;
+}
+// 問題集1冊分のメモを分野別に集計
+function wbMemoFieldTotals(w){return parseMemoByField(w.memo||'',data.fields);}
+
+// メモの自由記述から「ラベル＋数字」のペアを全部拾い、登録済み分野名に一致しないものだけを
+// 「項目」（第1章・5周目など、事前登録のない自由な単位）として集計する。
+function parseMemoByItem(memoText,fields){
+  var result={};
+  if(!memoText)return result;
+  var fieldNames=fields.map(function(f){return f.name;}).filter(Boolean);
+  // 日本語（漢字・かな・カタカナ）または英数字が連続する「ラベル」＋数字、をすべて拾う
+  var re=/([一-龠ぁ-んァ-ヶー0-9a-zA-Z]+?)\s*(\d+)/g;
+  var m;
+  while((m=re.exec(memoText))!==null){
+    var label=m[1],num=parseInt(m[2])||0;
+    if(!label)continue;
+    if(fieldNames.indexOf(label)!==-1)continue; // 分野名としてマッチするものは項目別には含めない
+    result[label]=(result[label]||0)+num;
+  }
+  return result;
+}
+function wbMemoItemTotals(w){return parseMemoByItem(w.memo||'',data.fields);}
 function showSync(msg){var el=document.getElementById('sync-status');if(el){el.textContent=msg;setTimeout(function(){el.textContent='';},3000);}}
 
 function showLoginScreen(){document.getElementById('login-screen').style.display='flex';document.getElementById('main-screen').style.display='none';dismissSplash();}
@@ -1199,6 +1237,43 @@ function toggleCard(i){if(openCards[i])delete openCards[i];else openCards[i]=tru
   },{passive:true});
 })();
 
+// メインカード下の1行のHTMLを生成する（1日目標が未達成ならそちらを優先、達成済み/未設定なら実績）。
+// incrementWb後にこの行だけをピンポイントで更新できるよう、独立関数として切り出している。
+function renderDailyHintRow(){
+  var mainIdx2=getMainFieldIdx();
+  if(mainIdx2>=0){
+    var mf2=data.fields[mainIdx2];
+    var goal=fieldDailyGoal(mf2);
+    var todayC=todayCount(mf2);
+    if(goal>0&&todayC<goal){
+      var remainQ=goal-todayC;
+      return '<div style="display:flex;align-items:center;gap:7px;margin:0 22px 14px;padding:0 2px;">'
+        +'<span style="color:var(--accent);display:flex;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>'
+        +'<span style="font-size:13px;color:var(--text3);">1日目標まであと<span style="color:var(--text2);font-weight:600;">'+remainQ+'</span>問</span>'
+        +'</div>';
+    }
+  }
+  // 1日目標が無い/達成済みの場合は実績（達成率が最も高い未達成1件）を表示
+  var unlocked=data.unlockedAchievements||[];
+  var st=calcStats();
+  var best=null;
+  ACHIEVEMENTS.forEach(function(a){
+    if(a.secret)return;
+    if(unlocked.indexOf(a.id)!==-1)return;
+    if(!a.remain)return;
+    var r=a.remain(st);if(r<=0)return;
+    var ratio=achProgressValue(a,st);
+    if(best===null||ratio>best.ratio)best={ach:a,remain:r,ratio:ratio};
+  });
+  if(best){
+    var icon=achIcon(best.ach);
+    return '<div onclick="showTab(\'achievements\');setTimeout(openAchListModal,50)" style="display:flex;align-items:center;gap:7px;margin:0 22px 14px;padding:0 2px;cursor:pointer;">'
+      +'<span style="color:var(--accent);display:flex;flex-shrink:0;transform:scale(.62);transform-origin:left center;">'+icon+'</span>'
+      +'<span style="font-size:13px;color:var(--text3);">'+best.ach.name+'まであと'+best.remain+best.ach.unit+'</span>'
+      +'</div>';
+  }
+  return '';
+}
 function renderCounter(){
   updateHeaderStreak();
   var totalQ=data.fields.reduce(function(a,f){return a+fieldTotalQ(f);},0);
@@ -1275,42 +1350,7 @@ function renderCounter(){
   }
 
   // ════ メインカード下の1行：1日目標が未達成ならそちらを優先、達成済みなら実績を表示 ════
-  (function(){
-    var shown=false;
-    if(mainIdx>=0){
-      var mf2=data.fields[mainIdx];
-      var goal=fieldDailyGoal(mf2);
-      var todayC=todayCount(mf2);
-      if(goal>0&&todayC<goal){
-        var remainQ=goal-todayC;
-        html+='<div style="display:flex;align-items:center;gap:7px;margin:0 22px 14px;padding:0 2px;">'
-          +'<span style="color:var(--accent);display:flex;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>'
-          +'<span style="font-size:13px;color:var(--text3);">1日目標まであと<span style="color:var(--text2);font-weight:600;">'+remainQ+'</span>問</span>'
-          +'</div>';
-        shown=true;
-      }
-    }
-    if(shown)return;
-    // 1日目標が無い/達成済みの場合は実績（達成率が最も高い未達成1件）を表示
-    var unlocked=data.unlockedAchievements||[];
-    var st=calcStats();
-    var best=null;
-    ACHIEVEMENTS.forEach(function(a){
-      if(a.secret)return;
-      if(unlocked.indexOf(a.id)!==-1)return;
-      if(!a.remain)return;
-      var r=a.remain(st);if(r<=0)return;
-      var ratio=achProgressValue(a,st);
-      if(best===null||ratio>best.ratio)best={ach:a,remain:r,ratio:ratio};
-    });
-    if(best){
-      var icon=achIcon(best.ach);
-      html+='<div onclick="showTab(\'achievements\');setTimeout(openAchListModal,50)" style="display:flex;align-items:center;gap:7px;margin:0 22px 14px;padding:0 2px;cursor:pointer;">'
-        +'<span style="color:var(--accent);display:flex;flex-shrink:0;transform:scale(.62);transform-origin:left center;">'+icon+'</span>'
-        +'<span style="font-size:13px;color:var(--text3);">'+best.ach.name+'まであと'+best.remain+best.ach.unit+'</span>'
-        +'</div>';
-    }
-  })();
+  html+='<div id="daily-hint-row">'+renderDailyHintRow()+'</div>';
 
   // ════ ③ 分野リスト（ナビ兼サマリー・固定順・同時展開1つ）════
   html+='<div class="sec-label" style="padding:0 22px;">分野</div>';
@@ -1701,6 +1741,10 @@ function incrementWb(i,j,delta){
   save();
   updateHeaderStreak();
 
+  // 1日目標/実績のヒント行を最新の状態に更新（再描画せずピンポイントで反映）
+  var hintEl=document.getElementById('daily-hint-row');
+  if(hintEl)hintEl.innerHTML=renderDailyHintRow();
+
   // メイン以外を操作した場合はメインカードを追従
   if(!isMain){
     clearTimeout(window._mainSwitchTimer);
@@ -1977,11 +2021,23 @@ function renderAchievements(){
     if(c<=59)return{sz:28,col:HM_COLORS[3]};  // 多量
     return{sz:31,col:HM_COLORS[4]};           // 大量
   }
-  var LINK_LINE='rgba(143,48,24,0.6)';// 連続日をつなぐライン
+  // ドットのサイズ・連続ラインの色濃度に使うベースカラーはHM_COLORS/achDotSpec/linkStyleで定義
   function dayCnt(dd){
     if(dd<1||dd>daysInMonth)return 0;
     var k=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
     return counts[k]||0;
+  }
+  // dを含む連続学習区間の長さ（月をまたぐ分は含まない・簡易版）
+  function runLength(d){
+    if(dayCnt(d)<=0)return 0;
+    var s=d,e=d;
+    while(dayCnt(s-1)>0)s--;
+    while(dayCnt(e+1)>0)e++;
+    return e-s+1;
+  }
+  // 常に細く控えめな一定の半透明線（太さ・濃さは連続日数によらず一定）
+  function linkStyle(len){
+    return{col:'rgba(143,48,24,0.42)',w:1};
   }
   html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;grid-auto-rows:55px;">';
   for(var e=0;e<firstDow;e++)html+='<div></div>';
@@ -1996,9 +2052,13 @@ function renderAchievements(){
     var op=isFuture?'0.3':'1';
     if(HM_DOT){
       var spec=achDotSpec(cnt);
-      // 連続学習：右隣（同じ週内）も学習日なら細いラインで接続
+      // 連続学習：右隣（同じ週内）も学習日なら接続。常に細く控えめな一定の線（D案）
       var hasNext=cnt>0&&dow<6&&dayCnt(d+1)>0;
-      var link=hasNext?'<span style="position:absolute;top:50%;left:50%;width:calc(100% + 4px);height:1.5px;background:'+LINK_LINE+';transform:translateY(-50%);"></span>':'';
+      var link='';
+      if(hasNext){
+        var ls=linkStyle();
+        link='<span style="position:absolute;top:50%;left:50%;width:calc(100% + 4px);height:'+ls.w+'px;border-radius:99px;background:'+ls.col+';transform:translateY(-50%);"></span>';
+      }
       var isGoal=!!goals[key];
       var hasMs=!!msMap[key];
       var selGlow=isSel?'box-shadow:0 0 0 5px rgba(230,220,204,0.55),0 0 10px 6px rgba(230,220,204,0.35);':'';
@@ -2018,6 +2078,7 @@ function renderAchievements(){
       html+='<div onclick="achSelectDay(\''+key+'\')" style="aspect-ratio:1;background:'+col+';opacity:'+op+';cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:5px;'+extra+'"><span style="font-size:10px;color:'+(cnt>50?'#fff':(isSel||isToday?'var(--accent)':'var(--text3)'))+';font-weight:'+(isSel||isToday?'700':'400')+';">'+d+'</span></div>';
     }
   }
+  html+='</div>';
   // 今月・累計（カレンダーの一部として下部に添える）
   var monthTotal=0;
   var mPrefix=yr+'-'+String(mo+1).padStart(2,'0');
@@ -2617,7 +2678,31 @@ function renderSettingsWb(){
   if(w.total>0)html+='<div onclick="if(confirm(\'手動で次の周へ進めますか？\'))manualAdvanceRound('+setSelField+','+setSelWb+')" style="text-align:right;font-size:12px;color:var(--text3);cursor:pointer;padding:6px 2px 0;">手動で次周へ進める ›</div>';
   // メモ
   html+='<div class="sec-label" style="margin-top:18px;">メモ</div>';
-  html+='<textarea class="sc-textarea" style="min-height:110px;font-size:13px;padding:11px 13px;line-height:1.6;" placeholder="メモ..." onchange="updWB('+setSelField+','+setSelWb+',\'memo\',this.value)">'+(w.memo||'')+'</textarea>';
+  html+='<textarea class="sc-textarea" style="min-height:110px;font-size:13px;padding:11px 13px;line-height:1.6;" placeholder="例：憲法10 民法5" onchange="updWB('+setSelField+','+setSelWb+',\'memo\',this.value);renderSettings()">'+(w.memo||'')+'</textarea>';
+  // メモから「ラベル＋数字」を自動集計（分野名だけでなく、まだ登録していない法律名等も拾う）
+  var memoTotals=wbMemoFieldTotals(w);
+  var memoItemTotals=wbMemoItemTotals(w);
+  var allTotals={};
+  Object.keys(memoTotals).forEach(function(k){allTotals[k]=memoTotals[k];});
+  Object.keys(memoItemTotals).forEach(function(k){allTotals[k]=memoItemTotals[k];});
+  var memoKeys=Object.keys(allTotals);
+  if(memoKeys.length){
+    html+='<div style="margin-top:8px;background:var(--accent-light);border-radius:10px;padding:10px 13px;">'
+      +'<div style="font-size:11px;color:var(--text3);margin-bottom:6px;">メモから自動集計</div>';
+    memoKeys.forEach(function(k,idx){
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:'+(idx>0?'5px 0 0':'0')+';">'
+        +'<span style="font-size:13px;color:var(--text2);">'+k+'</span>'
+        +'<span style="font-size:13px;font-weight:600;color:var(--accent);">'+allTotals[k]+'<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:1px;">問</span></span>'
+        +'</div>';
+    });
+    var grandTotal=memoKeys.reduce(function(a,k){return a+allTotals[k];},0);
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0 0;margin-top:5px;border-top:0.5px solid var(--accent-mid);">'
+      +'<span style="font-size:12px;color:var(--text3);">合計</span>'
+      +'<span style="font-size:13px;font-weight:700;color:var(--accent);">'+grandTotal+'<span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:1px;">問</span></span>'
+      +'</div>';
+    html+='<div onclick="updWB('+setSelField+','+setSelWb+',\'total\','+grandTotal+');renderSettings()" style="text-align:center;font-size:12px;color:var(--accent);cursor:pointer;padding:8px 0 0;">この合計を「問題数」欄に反映 ›</div>';
+    html+='</div>';
+  }
   // 他分野へ移動
   if(data.fields.length>1&&wbs.length>1){
     var opts='<option value="">他の分野へ移動…</option>';
